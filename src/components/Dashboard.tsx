@@ -25,7 +25,7 @@ export default function Dashboard() {
     toggleFavorite, 
     deleteDomainRequest, 
     logoutUser,
-    isFirebaseActive,
+    isSupabaseActive,
     customTemplates,
     isAdmin
   } = useApp();
@@ -86,7 +86,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-3">
           <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-[#dbef1a]/20 text-neutral-800 border border-[#dbef1a]/30">
-            {isFirebaseActive ? "Firestore Connected" : "Local Mock Storage"}
+            {isSupabaseActive ? "Supabase Connected" : "Local Mock Storage"}
           </span>
           <button
             onClick={() => {

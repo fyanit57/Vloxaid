@@ -50,7 +50,7 @@ interface AppContextType {
   favorites: UserFavorite[];
   domainRequests: DomainRequest[];
   isLoading: boolean;
-  isFirebaseActive: boolean; // Kept as isFirebaseActive for compatibility with views
+  isSupabaseActive: boolean; 
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (name: string, email: string, pass: string) => Promise<void>;
@@ -82,7 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirebaseActive, setIsFirebaseActive] = useState(!isSupabasePlaceholderConfig && !!supabase);
+  const [isSupabaseActive, setIsSupabaseActive] = useState(!isSupabasePlaceholderConfig && !!supabase);
 
   const isAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
 
@@ -106,7 +106,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Synchronize authentication state
   useEffect(() => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       // Offline fallback mode initialization
       const cachedUid = localStorage.getItem("vloxa_fallback_uid");
       if (cachedUid) {
@@ -316,11 +316,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (favoritesSubscription) supabase.removeChannel(favoritesSubscription);
       if (domainsSubscription) supabase.removeChannel(domainsSubscription);
     };
-  }, [isFirebaseActive]);
+  }, [isSupabaseActive]);
 
   // Google Login implementation
   const loginWithGoogle = async () => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       // Simulate Google login offline
       const mockUid = "gg-" + Math.random().toString(36).substring(2, 11);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
@@ -354,7 +354,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Email and Password Login
   const loginWithEmail = async (email: string, pass: string) => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       const mockUid = "em-" + btoa(email).substring(0, 10);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
       localStorage.setItem("vloxa_fallback_name", email.split("@")[0]);
@@ -385,7 +385,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Register user manual
   const registerWithEmail = async (name: string, email: string, pass: string) => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       const mockUid = "em-" + btoa(email).substring(0, 10);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
       localStorage.setItem("vloxa_fallback_name", name);
@@ -430,7 +430,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFavorites([]);
     setDomainRequests([]);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -455,7 +455,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setUserProfile(updatedProfile);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       setLocalData(`vloxa_profile_${user.uid}`, updatedProfile);
       return;
     }
@@ -498,7 +498,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     setFavorites(newList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       setLocalData(`vloxa_favorites_${user.uid}`, newList);
       return;
     }
@@ -556,7 +556,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newList = [...domainRequests, newRequest];
     setDomainRequests(newList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       setLocalData(`vloxa_domains_${user.uid}`, newList);
       return;
     }
@@ -580,7 +580,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newList = domainRequests.filter(r => r.id !== requestId);
     setDomainRequests(newList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       setLocalData(`vloxa_domains_${user.uid}`, newList);
       return;
     }
@@ -610,7 +610,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Subscribe to Featured Templates (independent of logged-in state)
   useEffect(() => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       const fallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
       setFeaturedTemplateIds(fallback);
       return;
@@ -656,7 +656,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(configChannel);
     };
-  }, [isFirebaseActive]);
+  }, [isSupabaseActive]);
 
   // Update Featured Templates (Admin only)
   const updateFeaturedTemplates = async (ids: string[]) => {
@@ -666,7 +666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFeaturedTemplateIds(ids);
     setLocalData("vloxa_featured_templates", ids);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -692,9 +692,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Helper to dynamically auto-detect Supabase schema columns for custom templates table
+  const detectSchemaColumns = async (): Promise<{ 
+    demo: string; 
+    catLabel: string; 
+    hasDemo: boolean; 
+    hasCatLabel: boolean; 
+  }> => {
+    let dCol = "demo_url";
+    let clCol = "category_label";
+    let hasDemo = false;
+    let hasCatLabel = false;
+
+    if (!isSupabaseActive || !supabase) {
+      return { demo: dCol, catLabel: clCol, hasDemo: true, hasCatLabel: true };
+    }
+    try {
+      // 1. Detect demo URL column
+      const demoCandidates = ["demo_url", "url", "demo", "demoUrl", "link", "demo_link", "preview_url", "web_url"];
+      for (const candidate of demoCandidates) {
+        const { error } = await supabase
+          .from("custom_templates")
+          .select(candidate)
+          .limit(0);
+        if (!error) {
+          dCol = candidate;
+          hasDemo = true;
+          break;
+        } else {
+          console.log(`Candidate demo column ${candidate} is not present or query failed:`, error.message);
+        }
+      }
+
+      // 2. Detect category label column
+      const catLabelCandidates = ["category_label", "categoryLabel", "label", "category_name", "tag"];
+      for (const candidate of catLabelCandidates) {
+        const { error } = await supabase
+          .from("custom_templates")
+          .select(candidate)
+          .limit(0);
+        if (!error) {
+          clCol = candidate;
+          hasCatLabel = true;
+          break;
+        } else {
+          console.log(`Candidate category label column ${candidate} is not present or query failed:`, error.message);
+        }
+      }
+    } catch (e) {
+      console.warn("Error detecting schema columns:", e);
+    }
+    console.log(`Detected columns for custom_templates -> demo URL: ${dCol} (found=${hasDemo}), category label: ${clCol} (found=${hasCatLabel})`);
+    return { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel };
+  };
+
   // Subscribe to Dynamic Custom Templates (independent of logged-in state)
   useEffect(() => {
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       const fallback = getLocalData<Template[]>("vloxa_custom_templates", []);
       setCustomTemplates(fallback);
       return;
@@ -702,6 +756,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const loadCustomTemplates = async () => {
       try {
+        const { demo: dCol, catLabel: clCol } = await detectSchemaColumns();
+
         const { data, error } = await supabase
           .from("custom_templates")
           .select("*")
@@ -710,7 +766,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (error) {
           console.warn("Custom templates query error:", error.message);
         } else if (data) {
-          const list = data.map(item => toCamelCase(item)) as Template[];
+          const list = data.map(item => {
+            const camel = toCamelCase(item);
+            camel.demoUrl = item[dCol] || item.demo_url || item.url || item.demo || "";
+            camel.categoryLabel = item[clCol] || item.category_label || item.categoryLabel || "";
+            return camel;
+          }) as Template[];
           setCustomTemplates(list);
           setLocalData("vloxa_custom_templates", list);
         }
@@ -735,7 +796,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(templateChannel);
     };
-  }, [isFirebaseActive]);
+  }, [isSupabaseActive]);
 
   // Add a new Custom Template (Admin only)
   const addCustomTemplate = async (templateData: Omit<Template, "id">) => {
@@ -753,7 +814,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -763,15 +824,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const payload = toSnakeCase({
+      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
+
+      const payload: Record<string, any> = {
         id,
         title: templateData.title,
         category: templateData.category,
-        categoryLabel: templateData.categoryLabel,
         image: templateData.image,
-        demoUrl: templateData.demoUrl,
-        createdAt: new Date().toISOString()
-      });
+        created_at: new Date().toISOString()
+      };
+      if (hasDemo) {
+        payload[dCol] = templateData.demoUrl;
+      }
+      if (hasCatLabel) {
+        payload[clCol] = templateData.categoryLabel;
+      }
 
       const { error } = await supabase
         .from("custom_templates")
@@ -794,7 +861,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -825,7 +892,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -835,13 +902,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const payload = toSnakeCase({
+      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
+
+      const payload: Record<string, any> = {
         title: templateData.title,
         category: templateData.category,
-        categoryLabel: templateData.categoryLabel,
-        image: templateData.image,
-        demoUrl: templateData.demoUrl
-      });
+        image: templateData.image
+      };
+      if (hasDemo) {
+        payload[dCol] = templateData.demoUrl;
+      }
+      if (hasCatLabel) {
+        payload[clCol] = templateData.categoryLabel;
+      }
 
       const { error } = await supabase
         .from("custom_templates")
@@ -855,7 +928,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Import all static TEMPLATES into firebase "custom_templates" or localStorage "vloxa_custom_templates"
+  // Import all static TEMPLATES into Supabase "custom_templates" or localStorage "vloxa_custom_templates"
   const importAllBaselineTemplates = async () => {
     const userEmail = user?.email || "";
     const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
@@ -883,7 +956,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isFirebaseActive || !supabase) {
+    if (!isSupabaseActive || !supabase) {
       return;
     }
 
@@ -893,15 +966,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const rows = toImport.map(t => toSnakeCase({
-        id: t.id,
-        title: t.title,
-        category: t.category,
-        categoryLabel: t.categoryLabel,
-        image: t.image,
-        demoUrl: t.demoUrl,
-        createdAt: nowStr
-      }));
+      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
+
+      const rows = toImport.map(t => {
+        const payload: Record<string, any> = {
+          id: t.id,
+          title: t.title,
+          category: t.category,
+          image: t.image,
+          created_at: nowStr
+        };
+        if (hasDemo) {
+          payload[dCol] = t.demoUrl;
+        }
+        if (hasCatLabel) {
+          payload[clCol] = t.categoryLabel;
+        }
+        return payload;
+      });
 
       const { error } = await supabase
         .from("custom_templates")
@@ -936,7 +1018,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       favorites,
       domainRequests,
       isLoading,
-      isFirebaseActive,
+      isSupabaseActive,
       loginWithGoogle,
       loginWithEmail,
       registerWithEmail,
