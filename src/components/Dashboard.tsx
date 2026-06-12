@@ -26,7 +26,10 @@ export default function Dashboard() {
     deleteDomainRequest, 
     logoutUser,
     isFirebaseActive,
-    customTemplates
+    customTemplates,
+    isAdmin,
+    activateAdminWithCode,
+    deactivateAdmin
   } = useApp();
 
   const [bizType, setBizType] = useState(userProfile?.bizType || "UMKM");
@@ -35,7 +38,32 @@ export default function Dashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // States for Special Admin backdoor activation (Opsi 2)
+  const [adminCode, setAdminCode] = useState("");
+  const [adminMessage, setAdminMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isActivating, setIsActivating] = useState(false);
+
   if (!user) return null;
+
+  const handleActivateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminCode.trim()) return;
+    setIsActivating(true);
+    setAdminMessage(null);
+    try {
+      const success = await activateAdminWithCode(adminCode);
+      if (success) {
+        setAdminMessage({ type: "success", text: "Akses Super Admin Berhasil Diaktifkan! Selamat bersenang-senang mengelola website." });
+        setAdminCode("");
+      } else {
+        setAdminMessage({ type: "error", text: "Kode akses salah! Coba 'VLOXA-SUPER-ADMIN' atau 'ADMIN123'." });
+      }
+    } catch (err) {
+      setAdminMessage({ type: "error", text: "Gagal memproses kode sandi." });
+    } finally {
+      setIsActivating(false);
+    }
+  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +192,63 @@ export default function Dashboard() {
               {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </form>
+
+          {/* Admin Backdoor Code Section (Opsi 2) */}
+          <div className="mt-6 pt-6 border-t border-neutral-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+              <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Akses Khusus Admin</h4>
+            </div>
+
+            {isAdmin ? (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5 animate-pulse" />
+                  <div className="text-xs text-emerald-800">
+                    <p className="font-extrabold uppercase tracking-wide text-[10px]">Akses Admin Aktif</p>
+                    <p className="font-medium text-[11px] mt-0.5 leading-normal">
+                      Anda sekarang dapat menambah, mengedit, menghapus, & mengatur template bawaan secara bebas di website ini.
+                    </p>
+                  </div>
+                </div>
+                {userProfile?.role === "admin" && (
+                  <button
+                    onClick={deactivateAdmin}
+                    className="w-full text-center py-1.5 px-3 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shadow-3xs"
+                  >
+                    Nonaktifkan Akses Admin
+                  </button>
+                )}
+              </div>
+            ) : (
+              <form onSubmit={handleActivateAdmin} className="space-y-3">
+                <p className="text-[11px] text-neutral-500 leading-normal font-medium">
+                  Masukkan kode rahasia admin untuk mengarahkan Anda ke Dashboard Admin khusus kelola katalog template bawaan. (Gunakan <span className="font-bold text-neutral-850 bg-neutral-100 px-1 py-0.5 rounded font-mono">VLOXA-SUPER-ADMIN</span>)
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Kode Rahasia Admin..."
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    className="flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#dbef1a] font-mono"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isActivating}
+                    className="rounded-xl bg-neutral-900 hover:bg-black px-4 py-2 text-xs font-semibold text-[#dbef1a] hover:text-white cursor-pointer transition-colors disabled:opacity-50"
+                  >
+                    {isActivating ? "Memproses..." : "Aktifkan"}
+                  </button>
+                </div>
+                {adminMessage && (
+                  <p className={`text-[10px] font-bold mt-1 ${adminMessage.type === "success" ? "text-emerald-600 animate-fadeIn" : "text-rose-500"}`}>
+                    {adminMessage.text}
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
 
           {/* Real-time Website Mock Card Preview */}
           <div className="mt-8 border border-neutral-200 rounded-xl bg-white overflow-hidden p-4 shadow-2xs">

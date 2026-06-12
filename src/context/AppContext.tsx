@@ -42,6 +42,7 @@ export interface UserProfile {
   themeColor: string;
   createdAt: string;
   updatedAt: string;
+  role?: string; // Optional field for RBAC ("admin" | "member")
 }
 
 export interface UserFavorite {
@@ -83,6 +84,8 @@ interface AppContextType {
   updateCustomTemplate: (id: string, template: Omit<Template, "id" | "createdAt">) => Promise<void>;
   deleteCustomTemplate: (id: string) => Promise<void>;
   importAllBaselineTemplates: () => Promise<void>;
+  activateAdminWithCode: (code: string) => Promise<boolean>;
+  deactivateAdmin: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -97,7 +100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isFirebaseActive, setIsFirebaseActive] = useState(!isPlaceholderConfig && !!auth);
 
-  const isAdmin = user ? (user.email === "fyanit57@gmail.com") : false;
+  const isAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
 
   // Fallback storage functions for Placeholder/Offline mode
   const getLocalData = <T,>(key: string, defaultValue: T): T => {
@@ -140,7 +143,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           websiteTitle: "Toko Online Saya",
           themeColor: "#dbef1a",
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          role: (dummyUser.email === "fyanit57@gmail.com") ? "admin" : "member"
         }));
         setFavorites(getLocalData<UserFavorite[]>(`vloxa_favorites_${cachedUid}`, []));
         setDomainRequests(getLocalData<DomainRequest[]>(`vloxa_domains_${cachedUid}`, []));
@@ -192,7 +196,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               websiteTitle: "Toko Online Saya",
               themeColor: "#dbef1a",
               createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              updatedAt: new Date().toISOString(),
+              role: (currentUser.email === "fyanit57@gmail.com") ? "admin" : "member"
             };
             
             // Try to set document securely with error handling
@@ -532,7 +537,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateFeaturedTemplates = async (ids: string[]) => {
     // Check if current user is admin
     const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com";
+    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
     // Update local state and storage first (optimistic update)
     setFeaturedTemplateIds(ids);
@@ -591,7 +596,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Add a new Custom Template (Admin only)
   const addCustomTemplate = async (templateData: Omit<Template, "id">) => {
     const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com";
+    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
     const id = "custom-" + Math.random().toString(36).substring(2, 11);
     const newTemplate: Template = {
@@ -631,7 +636,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Delete a Custom Template (Admin only)
   const deleteCustomTemplate = async (id: string) => {
     const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com";
+    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
     const updatedList = customTemplates.filter(t => t.id !== id);
     setCustomTemplates(updatedList);
@@ -657,7 +662,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Update an existing Custom Template (Admin only)
   const updateCustomTemplate = async (id: string, templateData: Omit<Template, "id" | "createdAt">) => {
     const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com";
+    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
     // Optimistic update
     const updatedList = customTemplates.map(t => t.id === id ? { ...t, ...templateData } : t);
@@ -690,7 +695,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Import all static TEMPLATES into firebase "custom_templates" or localStorage "vloxa_custom_templates"
   const importAllBaselineTemplates = async () => {
     const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com";
+    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
     // Filter which baseline templates are already in customTemplates to avoid duplicating
     const existingIds = new Set(customTemplates.map(t => t.id));
@@ -753,6 +758,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Dynamic role-based admin activation functions (Opsi 2)
+  const activateAdminWithCode = async (code: string): Promise<boolean> => {
+    const formattedCode = code.trim().toUpperCase();
+    if (formattedCode === "VLOXA-SUPER-ADMIN" || formattedCode === "ADMIN123") {
+      await updateUserProfile({ role: "admin" });
+      return true;
+    }
+    return false;
+  };
+
+  const deactivateAdmin = async (): Promise<void> => {
+    await updateUserProfile({ role: "member" });
+  };
+
   return (
     <AppContext.Provider value={{
       user,
@@ -777,7 +796,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addCustomTemplate,
       updateCustomTemplate,
       deleteCustomTemplate,
-      importAllBaselineTemplates
+      importAllBaselineTemplates,
+      activateAdminWithCode,
+      deactivateAdmin
     }}>
       {children}
     </AppContext.Provider>
