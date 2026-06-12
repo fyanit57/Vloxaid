@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TEMPLATES, Template } from "../data/templates";
 import { 
   Search, 
@@ -44,6 +44,13 @@ export default function AdminFeaturedModal({
 }: AdminFeaturedModalProps) {
   const [activeTab, setActiveTab] = useState<"curate" | "add-manage">("curate");
   const [selectedIds, setSelectedIds] = useState<string[]>(featuredTemplateIds);
+
+  // Sync selectedIds with saved featuredTemplateIds whenever the modal opens or the saved IDs change
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIds(featuredTemplateIds);
+    }
+  }, [isOpen, featuredTemplateIds]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isSaving, setIsSaving] = useState(false);

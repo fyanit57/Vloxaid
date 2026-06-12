@@ -21,9 +21,75 @@ import {
   CheckSquare,
   Sparkles,
   ExternalLink,
-  Info
+  Info,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+
+interface HeroSlide {
+  id: number;
+  image: string;
+  ownerName: string;
+  bizName: string;
+  metricTitle: string;
+  metricValue: string;
+  badgeEmoji: string;
+  revenue: string;
+  revenueLabel: string;
+  desc: string;
+}
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 1,
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&h=875&q=80",
+    ownerName: "Sarah Siregar",
+    bizName: "Svara Tech Agency",
+    metricTitle: "Store Growth",
+    metricValue: "+24% Growth",
+    badgeEmoji: "💹",
+    revenue: "Rp12.450.000",
+    revenueLabel: "Today's Revenue",
+    desc: "Digital Agency & Tech Consultant",
+  },
+  {
+    id: 2,
+    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=700&h=875&q=80",
+    ownerName: "Budi Santoso",
+    bizName: "Kopi Seduh Nusantara",
+    metricTitle: "Monthly Orders",
+    metricValue: "180+ Cup / Hari",
+    badgeEmoji: "☕",
+    revenue: "Rp4.820.000",
+    revenueLabel: "Est. Daily Income",
+    desc: "Cafe & Coffee Roastery",
+  },
+  {
+    id: 3,
+    image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=700&h=875&q=80",
+    ownerName: "Amira Prasetyo",
+    bizName: "Pesona Batik Studio",
+    metricTitle: "Global Export",
+    metricValue: "Export Ready",
+    badgeEmoji: "📦",
+    revenue: "Rp32.500.000",
+    revenueLabel: "Weekly Turnover",
+    desc: "Creative Boutique & Traditional Apparel",
+  },
+  {
+    id: 4,
+    image: "https://images.unsplash.com/photo-1581579186913-45ac3e6efe93?auto=format&fit=crop&w=700&h=875&q=80",
+    ownerName: "Aris Munandar",
+    bizName: "Dapur Rasa Selera",
+    metricTitle: "Rating Kepuasan",
+    metricValue: "4.9 ★ (2.5k Review)",
+    badgeEmoji: "🍰",
+    revenue: "Rp18.900.000",
+    revenueLabel: "Weekend Sales",
+    desc: "Premium Culinary & Artisan Catering",
+  }
+];
 
 export default function App() {
   const { 
@@ -52,6 +118,16 @@ export default function App() {
   const [domainAlert, setDomainAlert] = useState<string | null>(null);
   const [demoTemplate, setDemoTemplate] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Hero Image Carousel Slide State
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
 
   // Chatbot Assistant state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -161,16 +237,27 @@ export default function App() {
     <div className="min-h-screen bg-neutral-50/30 flex flex-col antialiased">
       
       {/* Top Banner Accent */}
-      <div className="bg-[#dbef1a] py-2.5 px-4 overflow-hidden relative border-b border-neutral-200">
-        <div className="animate-marquee whitespace-nowrap text-center text-xs font-bold text-neutral-900 flex justify-center items-center gap-6">
-          <span className="inline-flex items-center gap-1.5 uppercase font-extrabold tracking-wider">
+      <div className="bg-[#dbef1a] py-2 px-4 overflow-hidden relative border-b border-neutral-200">
+        <div className="animate-marquee whitespace-nowrap text-xs font-bold text-neutral-900 flex items-center gap-8 py-0.5">
+          <span className="inline-flex items-center gap-1.5 uppercase font-extrabold tracking-wider shrink-0">
             <Zap className="h-3.5 w-3.5 fill-neutral-950 text-neutral-950" />
             DISKON HINGGA 50% untuk paket tahunan — Kembangkan UMKM Digital Anda
           </span>
-          <span className="hidden md:inline text-neutral-600 block">|</span>
-          <span className="hidden md:inline-flex items-center gap-1">
+          <span className="text-neutral-600 block shrink-0">|</span>
+          <span className="inline-flex items-center gap-1 shrink-0">
             Dapatkan Free Domain .com dan Cloud Hosting Indonesia Premium Hari Ini!
           </span>
+          <span className="text-neutral-600 shrink-0">|</span>
+          {/* Duplicates to repeat for continuous scroll flow without blank spaces */}
+          <span className="inline-flex items-center gap-1.5 uppercase font-extrabold tracking-wider shrink-0">
+            <Zap className="h-3.5 w-3.5 fill-neutral-950 text-neutral-950 animate-pulse" />
+            DISKON HINGGA 50% untuk paket tahunan — Kembangkan UMKM Digital Anda
+          </span>
+          <span className="text-neutral-600 shrink-0">|</span>
+          <span className="inline-flex items-center gap-1 shrink-0">
+            Dapatkan Free Domain .com dan Cloud Hosting Indonesia Premium Hari Ini!
+          </span>
+          <span className="text-neutral-600 shrink-0">|</span>
         </div>
       </div>
 
@@ -409,38 +496,153 @@ export default function App() {
 
             </div>
 
-            {/* Immersive graphic section (Right column) */}
-            <div className="lg:col-span-5 relative mt-6 lg:mt-0 flex justify-center">
+            {/* Immersive graphic section (Right column with 4 rotating slides) */}
+            <div className="lg:col-span-5 relative mt-6 lg:mt-0 flex flex-col items-center">
               
-              {/* Solid graphic mask with young businesswoman */}
-              <div className="relative rounded-3xl overflow-hidden aspect-[4/5] w-full max-w-md shadow-2xl group border border-neutral-100">
-                <img 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80" 
-                  alt="Vloxa Customer Success" 
-                  referrerPolicy="no-referrer"
-                  className="object-cover w-full h-full transform group-hover:scale-102 transition-transform duration-700"
-                />
+              {/* Main Carousel viewport */}
+              <div 
+                className="relative rounded-3xl overflow-hidden aspect-[4/5] w-full max-w-md shadow-2xl group border border-neutral-100 bg-neutral-100/40"
+                id="hero-slideshow-container"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentSlide}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="absolute inset-0 w-full h-full"
+                  >
+                    <img 
+                      src={HERO_SLIDES[currentSlide].image} 
+                      alt={HERO_SLIDES[currentSlide].ownerName} 
+                      referrerPolicy="no-referrer"
+                      className="object-cover w-full h-full transform group-hover:scale-102 transition-transform duration-700 select-none"
+                    />
 
-                {/* Overlaid Data badges aligning with image.png */}
-                <div className="absolute top-6 left-6 rounded-xl bg-white/90 backdrop-blur-md p-4 shadow-xl border border-neutral-100 max-w-[210px] space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 rounded-full bg-[#dbef1a] text-neutral-900 items-center justify-center font-display font-extrabold text-[10px]">💹</span>
-                    <span className="font-display font-extrabold text-sm text-neutral-900">+24% Growth</span>
-                  </div>
-                  <div className="h-1 bg-neutral-200 rounded-full overflow-hidden mt-1.5">
-                    <div className="h-full bg-[#dbef1a] w-3/4 rounded-full" />
-                  </div>
-                  <span className="text-[10px] font-mono text-neutral-400 block mt-1 pt-1 border-t border-neutral-100">Store Analytics</span>
+                    {/* Gradient bottom scrim to make labels easily readable */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+
+                    {/* Quick Info text overlaid near the bottom above dots */}
+                    <div className="absolute bottom-16 left-6 right-6 text-white space-y-1 z-20">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 bg-[#dbef1a] text-neutral-900 font-extrabold rounded-md uppercase tracking-wider">
+                          VLOXA USER
+                        </span>
+                        <span className="text-[11px] text-neutral-200 font-bold tracking-wide">
+                          {HERO_SLIDES[currentSlide].desc}
+                        </span>
+                      </div>
+                      <h3 className="font-display text-xl font-black text-white leading-tight">
+                        {HERO_SLIDES[currentSlide].ownerName}
+                      </h3>
+                      <p className="text-xs text-[#dbef1a] font-bold">
+                        Owner, {HERO_SLIDES[currentSlide].bizName}
+                      </p>
+                    </div>
+
+                    {/* OVERLAY BADGE 1: Dynamically changes per business (Store Analytics) */}
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0, y: 10 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25, duration: 0.4 }}
+                      className="absolute top-6 left-6 rounded-xl bg-white/95 backdrop-blur-md p-4 shadow-xl border border-neutral-100/80 max-w-[210px] space-y-1 z-20 pointer-events-none select-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="flex h-5 w-5 rounded-full bg-[#dbef1a] text-neutral-900 items-center justify-center font-display font-extrabold text-[10px]">
+                          {HERO_SLIDES[currentSlide].badgeEmoji}
+                        </span>
+                        <span className="font-display font-extrabold text-sm text-neutral-900">
+                          {HERO_SLIDES[currentSlide].metricValue}
+                        </span>
+                      </div>
+                      <div className="h-1 bg-neutral-200 rounded-full overflow-hidden mt-1.5">
+                        <div 
+                          className="h-full bg-[#dbef1a] rounded-full transition-all duration-1000" 
+                          style={{ width: currentSlide === 0 ? "75%" : currentSlide === 1 ? "85%" : currentSlide === 2 ? "90%" : "95%" }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-mono text-neutral-400 block mt-1 pt-1 border-t border-neutral-100">
+                        {HERO_SLIDES[currentSlide].metricTitle}
+                      </span>
+                    </motion.div>
+
+                    {/* OVERLAY BADGE 2: Dynamically changes per business (Verified Sales/Revenue) */}
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0, y: 10 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35, duration: 0.4 }}
+                      className="absolute bottom-6 right-6 rounded-xl bg-white/95 backdrop-blur-md p-4 shadow-xl border border-neutral-100/80 max-w-[240px] space-y-1 z-20 pointer-events-none select-none hidden sm:block"
+                    >
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-bold">
+                        <span className="flex h-4 w-4 bg-emerald-100 rounded-full items-center justify-center text-emerald-700 text-[10px]">✓</span>
+                        Layanan Aktif
+                      </div>
+                      <h4 className="font-display font-black text-neutral-900 text-lg">
+                        {HERO_SLIDES[currentSlide].revenue}
+                      </h4>
+                      <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
+                        {HERO_SLIDES[currentSlide].revenueLabel}
+                      </p>
+                    </motion.div>
+
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Left Navigation Arrow */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-neutral-800 border border-neutral-200 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-30 cursor-pointer active:scale-95"
+                  aria-label="Previous Slide"
+                >
+                  <ChevronLeft className="h-4 w-4 stroke-[3]" />
+                </button>
+
+                {/* Right Navigation Arrow */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/70 hover:bg-white text-neutral-800 border border-neutral-200 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all z-30 cursor-pointer active:scale-95"
+                  aria-label="Next Slide"
+                >
+                  <ChevronRight className="h-4 w-4 stroke-[3]" />
+                </button>
+
+                {/* Active progress-line at bottom of slides to tick status visually */}
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-neutral-200/50 z-30">
+                  <motion.div 
+                    key={`bar-${currentSlide}`}
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 4.5, ease: "linear" }}
+                    className="h-full bg-[#dbef1a]"
+                  />
                 </div>
 
-                <div className="absolute bottom-6 right-6 rounded-xl bg-white/95 backdrop-blur-md p-4 shadow-xl border border-neutral-100 max-w-[240px] space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-bold">
-                    <span className="flex h-4 w-4 bg-emerald-100 rounded-full items-center justify-center text-emerald-700 text-[10px]">✓</span>
-                    Payment Verified
-                  </div>
-                  <h4 className="font-display font-black text-neutral-900 text-lg">Rp12.450.000</h4>
-                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Today's Revenue</p>
-                </div>
+              </div>
+
+              {/* Slider Dots indicators below the card */}
+              <div className="flex items-center gap-2 mt-4 z-20">
+                {HERO_SLIDES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      currentSlide === idx 
+                        ? "w-6 bg-[#dbef1a]" 
+                        : "w-2 bg-neutral-300 hover:bg-neutral-400"
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
 
             </div>
