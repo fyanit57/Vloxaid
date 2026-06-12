@@ -1,0 +1,172 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with configuration for their custom business website",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Authentication UID of the user"
+        },
+        "name": {
+          "type": "string",
+          "description": "User's display name"
+        },
+        "email": {
+          "type": "string",
+          "description": "User's verified email address"
+        },
+        "bizType": {
+          "type": "string",
+          "description": "Type of category of their business (e.g., F&B, Fashion, UMKM)"
+        },
+        "websiteTitle": {
+          "type": "string",
+          "description": "The title of the user's business website"
+        },
+        "themeColor": {
+          "type": "string",
+          "description": "Selected visual accent color for their website"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of profile creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of profile update"
+        }
+      },
+      "required": ["userId", "name", "email", "createdAt"]
+    },
+    "UserFavorite": {
+      "title": "UserFavorite",
+      "description": "A template favorited by a user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase UID of the user who favorited"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "The unique identifier of the design template"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of addition to favorites"
+        }
+      },
+      "required": ["userId", "templateId", "createdAt"]
+    },
+    "DomainRequest": {
+      "title": "DomainRequest",
+      "description": "A domain search/request submitted by a user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase UID of the user"
+        },
+        "domainName": {
+          "type": "string",
+          "description": "The domain name searched or requested"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["checked", "requested", "registered"],
+          "description": "Status of the domain requests"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of search"
+        }
+      },
+      "required": ["userId", "domainName", "status", "createdAt"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "Application configurations such as featured templates list selected by admins",
+      "type": "object",
+      "properties": {
+        "templateIds": {
+          "type": "array",
+          "description": "List of selected template IDs for Template Pilihan"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of update"
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "User email who updated the config"
+        }
+      },
+      "required": ["templateIds", "updatedAt"]
+    },
+    "CustomTemplate": {
+      "title": "CustomTemplate",
+      "description": "Template added dynamically by admin users",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the custom template"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the template"
+        },
+        "category": {
+          "type": "string",
+          "description": "Vloxa category of the template"
+        },
+        "categoryLabel": {
+          "type": "string",
+          "description": "Visual label for the category"
+        },
+        "image": {
+          "type": "string",
+          "description": "Base64 data url or standard image URL of the template graphic"
+        },
+        "demoUrl": {
+          "type": "string",
+          "description": "External live demo website URL"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of template addition"
+        }
+      },
+      "required": ["id", "title", "category", "categoryLabel", "image", "demoUrl", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/user_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores profile settings for each individual user."
+    },
+    "/user_favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/UserFavorite" },
+      "description": "Stores templates marked as favorites by users."
+    },
+    "/domain_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/DomainRequest" },
+      "description": "Stores user searches and requests for custom domains."
+    },
+    "/app_config/{configId}": {
+      "schema": { "$ref": "#/entities/AppConfig" },
+      "description": "Stores global app configurations including list of manually selected featured templates."
+    },
+    "/custom_templates/{templateId}": {
+      "schema": { "$ref": "#/entities/CustomTemplate" },
+      "description": "Stores user-added templates by the admin user."
+    }
+  }
+}

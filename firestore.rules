@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net: default-deny, except for the Admin (fyanit57@gmail.com)
+    // Who can read and write all documents/assets across all collections
+    match /{document=**} {
+      allow read, write: if request.auth != null 
+        && request.auth.token.email == 'fyanit57@gmail.com' 
+        && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'google.com');
+    }
+
+    // Modern globally shared primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      // Allow if token has email_verified == true, or if they are signed in via Google (which always verifies email)
+      return request.auth.token.email_verified == true || (request.auth.token.firebase.sign_in_provider == 'google.com');
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'fyanit57@gmail.com' && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'google.com');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // UserProfile Entity Validation Helper (Safely utilizing .get() for optional fields to avoid map accessor crashes)
+    function isValidUserProfile(data) {
+      return data.userId == request.auth.uid
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 200
+        && (data.get('bizType', null) == null || (data.get('bizType', '') is string && data.get('bizType', '').size() <= 100))
+        && (data.get('websiteTitle', null) == null || (data.get('websiteTitle', '') is string && data.get('websiteTitle', '').size() <= 150))
+        && (data.get('themeColor', null) == null || (data.get('themeColor', '') is string && data.get('themeColor', '').size() <= 50));
+    }
+
+    // UserFavorite Entity Validation Helper
+    function isValidUserFavorite(data) {
+      return data.userId == request.auth.uid
+        && data.templateId is string && data.templateId.size() >= 1 && data.templateId.size() <= 100;
+    }
+
+    // DomainRequest Entity Validation Helper
+    function isValidDomainRequest(data) {
+      return data.userId == request.auth.uid
+        && data.domainName is string && data.domainName.size() >= 3 && data.domainName.size() <= 253
+        && data.status is string && (data.status == 'checked' || data.status == 'requested' || data.status == 'registered');
+    }
+
+    // 1. User Profiles Collection
+    match /user_profiles/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId && isEmailVerified()
+        && isValidUserProfile(incoming())
+        && incoming().createdAt is string && incoming().createdAt.size() <= 60
+        && incoming().updatedAt is string && incoming().updatedAt.size() <= 60;
+      allow update: if isSignedIn() && request.auth.uid == userId && isEmailVerified()
+        && isValidUserProfile(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().email == existing().email
+        && incoming().userId == existing().userId
+        && (incoming().updatedAt == request.time || (incoming().updatedAt is string && incoming().updatedAt.size() <= 60));
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 2. User Favorites Collection
+    match /user_favorites/{favoriteId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isEmailVerified()
+        && isValidUserFavorite(incoming())
+        && incoming().createdAt == request.time;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // 3. Domain Requests Collection
+    match /domain_requests/{requestId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isEmailVerified()
+        && isValidDomainRequest(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && incoming().userId == request.auth.uid && isEmailVerified()
+        && isValidDomainRequest(incoming())
+        && incoming().userId == existing().userId
+        && incoming().domainName == existing().domainName
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // 4. App Config Collection (Admin only write, public read)
+    match /app_config/{configId} {
+      allow get, read, list: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 5. Custom Templates Collection (Admin only write, public read)
+    match /custom_templates/{templateId} {
+      allow get, read, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Vloxa - Platform Website UMKM",
+  "description": "Platform pembuatan website instant untuk UMKM Indonesia dengan ratusan template siap pakai, fitur pencarian domain, dan real-time database Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
