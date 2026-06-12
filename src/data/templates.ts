@@ -2,19 +2,12 @@
 import restaurantImg from "../assets/images/regenerated_image_1781157438366.webp";
 
 export interface Template {
-  /** Unique identifier for the template */
   id: string;
-  /** Title of the website template (e.g., 'Sehati Katering') */
   title: string;
-  /** Broad category (e.g., 'F&B', 'Jasa', 'Fashion') */
   category: string;
-  /** Human-readable category label (e.g., 'Food & Drink') */
   categoryLabel: string;
-  /** Image URL or webp path representing the preview image */
   image: string;
-  /** Live preview URL mapping to "demo_url" column in Supabase custom_templates */
   demoUrl: string;
-  /** ISO Date string recording the time of creation (optional) */
   createdAt?: string;
 }
 

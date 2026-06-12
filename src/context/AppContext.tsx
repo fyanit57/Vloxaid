@@ -1,22 +1,38 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { 
-  supabase, 
-  isSupabasePlaceholderConfig, 
-  toCamelCase, 
-  toSnakeCase, 
-  handleSupabaseError, 
-  SupabaseOperationType 
-} from "../supabase";
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  User,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from "firebase/auth";
+import { 
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  onSnapshot,
+  deleteDoc,
+  query,
+  where,
+  updateDoc,
+  Timestamp,
+  serverTimestamp,
+  writeBatch
+} from "firebase/firestore";
+import { 
+  auth, 
+  db, 
+  isPlaceholderConfig, 
+  handleFirestoreError, 
+  OperationType 
+} from "../firebase";
 import { Template, TEMPLATES } from "../data/templates";
 
-// Define compatible user type to avoid breaking other consumer components
-export interface CompatibleUser {
-  uid: string;
-  email: string;
-  displayName: string | null;
-  emailVerified?: boolean;
-}
-
+// Define TypeScript interfaces for our application state
 export interface UserProfile {
   userId: string;
   name: string;
@@ -45,12 +61,12 @@ export interface DomainRequest {
 }
 
 interface AppContextType {
-  user: CompatibleUser | null;
+  user: User | null;
   userProfile: UserProfile | null;
   favorites: UserFavorite[];
   domainRequests: DomainRequest[];
   isLoading: boolean;
-  isSupabaseActive: boolean; 
+  isFirebaseActive: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (name: string, email: string, pass: string) => Promise<void>;
@@ -75,14 +91,14 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CompatibleUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [favorites, setFavorites] = useState<UserFavorite[]>([]);
   const [domainRequests, setDomainRequests] = useState<DomainRequest[]>([]);
   const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSupabaseActive, setIsSupabaseActive] = useState(!isSupabasePlaceholderConfig && !!supabase);
+  const [isFirebaseActive, setIsFirebaseActive] = useState(!isPlaceholderConfig && !!auth);
 
   const isAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
 
@@ -106,16 +122,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Synchronize authentication state
   useEffect(() => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !auth || !db) {
       // Offline fallback mode initialization
       const cachedUid = localStorage.getItem("vloxa_fallback_uid");
       if (cachedUid) {
-        const dummyUser: CompatibleUser = {
+        const dummyUser = {
           uid: cachedUid,
           displayName: localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
           email: localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
           emailVerified: true,
-        };
+        } as unknown as User;
         setUser(dummyUser);
         
         // Load offline data
@@ -137,246 +153,159 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    let profileSubscription: any = null;
-    let favoritesSubscription: any = null;
-    let domainsSubscription: any = null;
+    let profileUnsub: (() => void) | null = null;
+    let favUnsub: (() => void) | null = null;
+    let domainUnsub: (() => void) | null = null;
 
-    const loadUserData = async (currentUser: any) => {
-      setIsLoading(true);
-      try {
-        const mappedUser: CompatibleUser = {
-          uid: currentUser.id,
-          email: currentUser.email || "",
-          displayName: currentUser.user_metadata?.full_name || currentUser.user_metadata?.displayName || currentUser.email?.split("@")[0] || "User",
-          emailVerified: !!currentUser.email_confirmed_at,
-        };
-        setUser(mappedUser);
-
-        // 1. Fetch profile
-        const { data: profileData, error: profileErr } = await supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("user_id", currentUser.id)
-          .maybeSingle();
-
-        if (profileErr) {
-          console.error("Profile load warning:", profileErr.message);
-        }
-
-        if (profileData) {
-          setUserProfile(toCamelCase(profileData) as UserProfile);
-        } else {
-          // Auto create profile first setup
-          const newProfile: UserProfile = {
-            userId: currentUser.id,
-            name: mappedUser.displayName || "Pengusaha UMKM",
-            email: mappedUser.email || "",
-            bizType: "UMKM",
-            websiteTitle: "Toko Online Saya",
-            themeColor: "#dbef1a",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            role: (mappedUser.email === "fyanit57@gmail.com") ? "admin" : "member"
-          };
-
-          const { error: insertErr } = await supabase
-            .from("user_profiles")
-            .upsert(toSnakeCase(newProfile));
-
-          if (insertErr) {
-            console.error("Profile insert failed:", insertErr.message);
-          } else {
-            setUserProfile(newProfile);
-          }
-        }
-
-        // 2. Load favorites
-        const { data: favsData, error: favsErr } = await supabase
-          .from("user_favorites")
-          .select("*")
-          .eq("user_id", currentUser.id);
-
-        if (favsErr) {
-          console.error("Favorites load warning:", favsErr.message);
-        } else if (favsData) {
-          setFavorites(favsData.map(f => toCamelCase(f)) as UserFavorite[]);
-        }
-
-        // 3. Load domain requests
-        const { data: domainsData, error: domainsErr } = await supabase
-          .from("domain_requests")
-          .select("*")
-          .eq("user_id", currentUser.id);
-
-        if (domainsErr) {
-          console.error("Domains load warning:", domainsErr.message);
-        } else if (domainsData) {
-          setDomainRequests(domainsData.map(d => toCamelCase(d)) as DomainRequest[]);
-        }
-
-        // Setup realtime observers
-        profileSubscription = supabase
-          .channel(`profile-${currentUser.id}`)
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "user_profiles", filter: `user_id=eq.${currentUser.id}` },
-            (payload: any) => {
-              if (payload.eventType === "DELETE") {
-                setUserProfile(null);
-              } else if (payload.new) {
-                setUserProfile(toCamelCase(payload.new) as UserProfile);
-              }
-            }
-          )
-          .subscribe();
-
-        favoritesSubscription = supabase
-          .channel(`favorites-${currentUser.id}`)
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "user_favorites", filter: `user_id=eq.${currentUser.id}` },
-            async () => {
-              const { data } = await supabase
-                .from("user_favorites")
-                .select("*")
-                .eq("user_id", currentUser.id);
-              if (data) {
-                setFavorites(data.map(f => toCamelCase(f)) as UserFavorite[]);
-              }
-            }
-          )
-          .subscribe();
-
-        domainsSubscription = supabase
-          .channel(`domains-${currentUser.id}`)
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "domain_requests", filter: `user_id=eq.${currentUser.id}` },
-            async () => {
-              const { data } = await supabase
-                .from("domain_requests")
-                .select("*")
-                .eq("user_id", currentUser.id);
-              if (data) {
-                setDomainRequests(data.map(d => toCamelCase(d)) as DomainRequest[]);
-              }
-            }
-          )
-          .subscribe();
-
-      } catch (error) {
-        console.error("Error loading user profile or data:", error);
-      } finally {
-        setIsLoading(false);
+    const cleanUpSubscribers = () => {
+      if (profileUnsub) {
+        profileUnsub();
+        profileUnsub = null;
+      }
+      if (favUnsub) {
+        favUnsub();
+        favUnsub = null;
+      }
+      if (domainUnsub) {
+        domainUnsub();
+        domainUnsub = null;
       }
     };
 
-    // Perform initial checks
-    supabase.auth.getUser().then(({ data: { user: initialUser } }) => {
-      if (initialUser) {
-        loadUserData(initialUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Clean up previous listeners BEFORE setting the new user or starting new listeners
+      cleanUpSubscribers();
+      
+      setUser(currentUser);
+      
+      if (currentUser) {
+        setIsLoading(true);
+        const profilePath = `user_profiles/${currentUser.uid}`;
+        
+        // 1. Subscribe to profile modifications real-time
+        profileUnsub = onSnapshot(doc(db, "user_profiles", currentUser.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            setUserProfile(docSnap.data() as UserProfile);
+          } else {
+            // First time setup - auto create profile
+            const newProfile: UserProfile = {
+              userId: currentUser.uid,
+              name: currentUser.displayName || "Pengusaha UMKM",
+              email: currentUser.email || "",
+              bizType: "UMKM",
+              websiteTitle: "Toko Online Saya",
+              themeColor: "#dbef1a",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              role: (currentUser.email === "fyanit57@gmail.com") ? "admin" : "member"
+            };
+            
+            // Try to set document securely with error handling
+            setDoc(doc(db, "user_profiles", currentUser.uid), newProfile)
+              .then(() => setUserProfile(newProfile))
+              .catch((err) => handleFirestoreError(err, OperationType.WRITE, profilePath));
+          }
+        }, (err) => {
+          if (err?.code !== "permission-denied") {
+            handleFirestoreError(err, OperationType.GET, profilePath);
+          }
+        });
+
+        // 2. Subscribe to favorites real-time
+        const favQuery = query(collection(db, "user_favorites"), where("userId", "==", currentUser.uid));
+        favUnsub = onSnapshot(favQuery, (snap) => {
+          const list: UserFavorite[] = [];
+          snap.forEach((doc) => {
+            list.push({ id: doc.id, ...doc.data() } as UserFavorite);
+          });
+          setFavorites(list);
+        }, (err) => {
+          if (err?.code !== "permission-denied") {
+            handleFirestoreError(err, OperationType.GET, "user_favorites");
+          }
+        });
+
+        // 3. Subscribe to Real-time Domain Requests
+        const domainQuery = query(collection(db, "domain_requests"), where("userId", "==", currentUser.uid));
+        domainUnsub = onSnapshot(domainQuery, (snap) => {
+          const list: DomainRequest[] = [];
+          snap.forEach((doc) => {
+            list.push({ id: doc.id, ...doc.data() } as DomainRequest);
+          });
+          setDomainRequests(list);
+          setIsLoading(false);
+        }, (err) => {
+          if (err?.code !== "permission-denied") {
+            handleFirestoreError(err, OperationType.GET, "domain_requests");
+          }
+        });
+
       } else {
-        setUser(null);
         setUserProfile(null);
         setFavorites([]);
         setDomainRequests([]);
         setIsLoading(false);
-      }
-    });
-
-    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        loadUserData(session.user);
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
-        setUserProfile(null);
-        setFavorites([]);
-        setDomainRequests([]);
-        setIsLoading(false);
-
-        // Remove active channels
-        if (profileSubscription) {
-          supabase.removeChannel(profileSubscription);
-          profileSubscription = null;
-        }
-        if (favoritesSubscription) {
-          supabase.removeChannel(favoritesSubscription);
-          favoritesSubscription = null;
-        }
-        if (domainsSubscription) {
-          supabase.removeChannel(domainsSubscription);
-          domainsSubscription = null;
-        }
       }
     });
 
     return () => {
-      authSub.unsubscribe();
-      if (profileSubscription) supabase.removeChannel(profileSubscription);
-      if (favoritesSubscription) supabase.removeChannel(favoritesSubscription);
-      if (domainsSubscription) supabase.removeChannel(domainsSubscription);
+      cleanUpSubscribers();
+      unsubscribe();
     };
-  }, [isSupabaseActive]);
+  }, [isFirebaseActive]);
 
   // Google Login implementation
   const loginWithGoogle = async () => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !auth) {
       // Simulate Google login offline
       const mockUid = "gg-" + Math.random().toString(36).substring(2, 11);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
       localStorage.setItem("vloxa_fallback_name", "Google User");
       localStorage.setItem("vloxa_fallback_email", "google.user@gmail.com");
       
-      const simulatedUser: CompatibleUser = {
+      const simulatedUser = {
         uid: mockUid,
         displayName: "Google User",
         email: "google.user@gmail.com",
         emailVerified: true,
-      };
+      } as unknown as User;
       
       setUser(simulatedUser);
+      setIsFirebaseActive(false);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      if (error) throw error;
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
     } catch (err) {
-      console.error("Supabase Login Gagal:", err);
+      console.error("Firebase Login Gagal:", err);
       throw err;
     }
   };
 
   // Email and Password Login
   const loginWithEmail = async (email: string, pass: string) => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !auth) {
+      // Offline fallback login success simulator
       const mockUid = "em-" + btoa(email).substring(0, 10);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
       localStorage.setItem("vloxa_fallback_name", email.split("@")[0]);
       localStorage.setItem("vloxa_fallback_email", email);
       
-      const simulatedUser: CompatibleUser = {
+      const simulatedUser = {
         uid: mockUid,
         displayName: email.split("@")[0],
         email: email,
         emailVerified: true,
-      };
+      } as unknown as User;
       
       setUser(simulatedUser);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password: pass,
-      });
-      if (error) throw error;
+      await signInWithEmailAndPassword(auth, email, pass);
     } catch (err) {
       console.error("Login email gagal:", err);
       throw err;
@@ -385,35 +314,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Register user manual
   const registerWithEmail = async (name: string, email: string, pass: string) => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !auth) {
       const mockUid = "em-" + btoa(email).substring(0, 10);
       localStorage.setItem("vloxa_fallback_uid", mockUid);
       localStorage.setItem("vloxa_fallback_name", name);
       localStorage.setItem("vloxa_fallback_email", email);
       
-      const simulatedUser: CompatibleUser = {
+      const simulatedUser = {
         uid: mockUid,
         displayName: name,
         email: email,
         emailVerified: true,
-      };
+      } as unknown as User;
       
       setUser(simulatedUser);
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password: pass,
-        options: {
-          data: {
-            full_name: name,
-            displayName: name,
-          }
-        }
-      });
-      if (error) throw error;
+      const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+      if (userCred.user) {
+        await updateProfile(userCred.user, { displayName: name });
+      }
     } catch (err) {
       console.error("Registrasi gagal:", err);
       throw err;
@@ -430,13 +352,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFavorites([]);
     setDomainRequests([]);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !auth) {
       return;
     }
 
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await signOut(auth);
     } catch (err) {
       console.error("Signout error:", err);
     }
@@ -453,28 +374,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updatedAt: new Date().toISOString()
     } as UserProfile;
 
-    setUserProfile(updatedProfile);
-
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      setUserProfile(updatedProfile);
       setLocalData(`vloxa_profile_${user.uid}`, updatedProfile);
       return;
     }
 
+    const path = `user_profiles/${user.uid}`;
     try {
-      const snakeUpdates = toSnakeCase({
+      await updateDoc(doc(db, "user_profiles", user.uid), {
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: serverTimestamp()
       });
-      const { error } = await supabase
-        .from("user_profiles")
-        .update(snakeUpdates)
-        .eq("user_id", user.uid);
-
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.UPDATE, "user_profiles", user.uid);
-      }
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.UPDATE, "user_profiles", user.uid);
+      handleFirestoreError(err, OperationType.UPDATE, path);
     }
   };
 
@@ -484,55 +397,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const existingFav = favorites.find(f => f.templateId === templateId);
 
-    let newList: UserFavorite[] = [];
-    if (existingFav) {
-      newList = favorites.filter(f => f.templateId !== templateId);
-    } else {
-      const newFav: UserFavorite = {
-        id: "fav-" + Math.random().toString(36).substring(2, 9),
-        userId: user.uid,
-        templateId,
-        createdAt: new Date().toISOString()
-      };
-      newList = [...favorites, newFav];
-    }
-    setFavorites(newList);
-
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      let newList: UserFavorite[] = [];
+      if (existingFav) {
+        newList = favorites.filter(f => f.templateId !== templateId);
+      } else {
+        const newFav: UserFavorite = {
+          id: "fav-" + Math.random().toString(36).substring(2, 9),
+          userId: user.uid,
+          templateId,
+          createdAt: new Date().toISOString()
+        };
+        newList = [...favorites, newFav];
+      }
+      setFavorites(newList);
       setLocalData(`vloxa_favorites_${user.uid}`, newList);
       return;
     }
 
     if (existingFav) {
+      const favDocPath = `user_favorites/${existingFav.id}`;
       try {
-        const { error } = await supabase
-          .from("user_favorites")
-          .delete()
-          .eq("id", existingFav.id);
-        if (error) {
-          handleSupabaseError(error, SupabaseOperationType.DELETE, "user_favorites", user.uid);
-        }
+        await deleteDoc(doc(db, "user_favorites", existingFav.id));
       } catch (err) {
-        handleSupabaseError(err, SupabaseOperationType.DELETE, "user_favorites", user.uid);
+        handleFirestoreError(err, OperationType.DELETE, favDocPath);
       }
     } else {
       const newFavId = `fav-${user.uid}-${templateId}`;
+      const favDocPath = `user_favorites/${newFavId}`;
       const newFavorite = {
-        id: newFavId,
         userId: user.uid,
         templateId,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       };
       
       try {
-        const { error } = await supabase
-          .from("user_favorites")
-          .insert(toSnakeCase(newFavorite));
-        if (error) {
-          handleSupabaseError(error, SupabaseOperationType.CREATE, "user_favorites", user.uid);
-        }
+        await setDoc(doc(db, "user_favorites", newFavId), newFavorite);
       } catch (err) {
-        handleSupabaseError(err, SupabaseOperationType.CREATE, "user_favorites", user.uid);
+        handleFirestoreError(err, OperationType.CREATE, favDocPath);
       }
     }
   };
@@ -541,35 +443,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const requestDomain = async (domain: string) => {
     if (!user) return;
 
+    // Clean domain name
     const cleanedDomain = domain.trim().toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, "");
     if (!cleanedDomain) return;
 
-    const docId = `domain-${user.uid}-${Date.now()}`;
-    const newRequest: DomainRequest = {
-      id: docId,
+    const newRequest: Omit<DomainRequest, "id"> = {
       userId: user.uid,
       domainName: cleanedDomain,
       status: "requested",
       createdAt: new Date().toISOString()
     };
 
-    const newList = [...domainRequests, newRequest];
-    setDomainRequests(newList);
-
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      const reqId = "req-" + Math.random().toString(36).substring(2, 9);
+      const newRequestWithId: DomainRequest = { id: reqId, ...newRequest };
+      const newList = [...domainRequests, newRequestWithId];
+      setDomainRequests(newList);
       setLocalData(`vloxa_domains_${user.uid}`, newList);
       return;
     }
 
+    const docId = `domain-${user.uid}-${Date.now()}`;
+    const path = `domain_requests/${docId}`;
     try {
-      const { error } = await supabase
-        .from("domain_requests")
-        .insert(toSnakeCase(newRequest));
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.CREATE, "domain_requests", user.uid);
-      }
+      await setDoc(doc(db, "domain_requests", docId), {
+        ...newRequest,
+        createdAt: serverTimestamp()
+      });
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.CREATE, "domain_requests", user.uid);
+      handleFirestoreError(err, OperationType.CREATE, path);
     }
   };
 
@@ -577,24 +479,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteDomainRequest = async (requestId: string) => {
     if (!user) return;
 
-    const newList = domainRequests.filter(r => r.id !== requestId);
-    setDomainRequests(newList);
-
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      const newList = domainRequests.filter(r => r.id !== requestId);
+      setDomainRequests(newList);
       setLocalData(`vloxa_domains_${user.uid}`, newList);
       return;
     }
 
+    const path = `domain_requests/${requestId}`;
     try {
-      const { error } = await supabase
-        .from("domain_requests")
-        .delete()
-        .eq("id", requestId);
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.DELETE, "domain_requests", user.uid);
-      }
+      await deleteDoc(doc(db, "domain_requests", requestId));
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.DELETE, "domain_requests", user.uid);
+      handleFirestoreError(err, OperationType.DELETE, path);
     }
   };
 
@@ -610,63 +506,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Subscribe to Featured Templates (independent of logged-in state)
   useEffect(() => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      // Offline fallback load from localStorage if exists
       const fallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
       setFeaturedTemplateIds(fallback);
       return;
     }
 
-    const loadFeaturedObj = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("app_config")
-          .select("*")
-          .eq("key", "featured")
-          .maybeSingle();
-
-        if (data && data.template_ids) {
-          setFeaturedTemplateIds(data.template_ids);
-          setLocalData("vloxa_featured_templates", data.template_ids);
-        } else {
-          const currentFallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
-          setFeaturedTemplateIds(currentFallback);
+    const unsub = onSnapshot(doc(db, "app_config", "featured"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data && Array.isArray(data.templateIds)) {
+          setFeaturedTemplateIds(data.templateIds);
+          // Persist to local cache as fallback
+          setLocalData("vloxa_featured_templates", data.templateIds);
         }
-      } catch (err) {
-        console.warn("Featured layouts load warning:", err);
+      } else {
+        // If it doesn't exist, keep/set fallback
+        const currentFallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
+        setFeaturedTemplateIds(currentFallback);
       }
-    };
+    }, (err) => {
+      console.warn("Failed to subscribe to featured templates:", err);
+    });
 
-    loadFeaturedObj();
-
-    // Setup channel subscription
-    const configChannel = supabase
-      .channel("public:app_config")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "app_config", filter: "key=eq.featured" },
-        (payload: any) => {
-          if (payload.new && payload.new.template_ids) {
-            setFeaturedTemplateIds(payload.new.template_ids);
-            setLocalData("vloxa_featured_templates", payload.new.template_ids);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(configChannel);
-    };
-  }, [isSupabaseActive]);
+    return () => unsub();
+  }, [isFirebaseActive]);
 
   // Update Featured Templates (Admin only)
   const updateFeaturedTemplates = async (ids: string[]) => {
+    // Check if current user is admin
     const userEmail = user?.email || "";
     const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
+    // Update local state and storage first (optimistic update)
     setFeaturedTemplateIds(ids);
     setLocalData("vloxa_featured_templates", ids);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
       return;
     }
 
@@ -675,128 +552,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const path = "app_config/featured";
     try {
-      const { error } = await supabase
-        .from("app_config")
-        .upsert({
-          key: "featured",
-          template_ids: ids,
-          updated_at: new Date().toISOString(),
-          updated_by: userEmail
-        });
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.WRITE, "app_config", user?.uid);
-      }
+      await setDoc(doc(db, "app_config", "featured"), {
+        templateIds: ids,
+        updatedAt: new Date().toISOString(),
+        updatedBy: userEmail
+      });
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.WRITE, "app_config", user?.uid);
+      handleFirestoreError(err, OperationType.WRITE, path);
     }
-  };
-
-  // Helper to dynamically auto-detect Supabase schema columns for custom templates table
-  const detectSchemaColumns = async (): Promise<{ 
-    demo: string; 
-    catLabel: string; 
-    hasDemo: boolean; 
-    hasCatLabel: boolean; 
-  }> => {
-    let dCol = "demo_url";
-    let clCol = "category_label";
-    let hasDemo = false;
-    let hasCatLabel = false;
-
-    if (!isSupabaseActive || !supabase) {
-      return { demo: dCol, catLabel: clCol, hasDemo: true, hasCatLabel: true };
-    }
-    try {
-      // 1. Detect demo URL column
-      const demoCandidates = ["demo_url", "url", "demo", "demoUrl", "link", "demo_link", "preview_url", "web_url"];
-      for (const candidate of demoCandidates) {
-        const { error } = await supabase
-          .from("custom_templates")
-          .select(candidate)
-          .limit(0);
-        if (!error) {
-          dCol = candidate;
-          hasDemo = true;
-          break;
-        } else {
-          console.log(`Candidate demo column ${candidate} is not present or query failed:`, error.message);
-        }
-      }
-
-      // 2. Detect category label column
-      const catLabelCandidates = ["category_label", "categoryLabel", "label", "category_name", "tag"];
-      for (const candidate of catLabelCandidates) {
-        const { error } = await supabase
-          .from("custom_templates")
-          .select(candidate)
-          .limit(0);
-        if (!error) {
-          clCol = candidate;
-          hasCatLabel = true;
-          break;
-        } else {
-          console.log(`Candidate category label column ${candidate} is not present or query failed:`, error.message);
-        }
-      }
-    } catch (e) {
-      console.warn("Error detecting schema columns:", e);
-    }
-    console.log(`Detected columns for custom_templates -> demo URL: ${dCol} (found=${hasDemo}), category label: ${clCol} (found=${hasCatLabel})`);
-    return { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel };
   };
 
   // Subscribe to Dynamic Custom Templates (independent of logged-in state)
   useEffect(() => {
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
+      // Offline fallback load from localStorage
       const fallback = getLocalData<Template[]>("vloxa_custom_templates", []);
       setCustomTemplates(fallback);
       return;
     }
 
-    const loadCustomTemplates = async () => {
-      try {
-        const { demo: dCol, catLabel: clCol } = await detectSchemaColumns();
+    const unsub = onSnapshot(collection(db, "custom_templates"), (snapshot) => {
+      const list: Template[] = [];
+      snapshot.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as Template);
+      });
+      // Sort newer custom templates first based on id or timestamp
+      list.sort((a, b) => {
+        const dateA = a.createdAt || "";
+        const dateB = b.createdAt || "";
+        return dateB.localeCompare(dateA);
+      });
+      setCustomTemplates(list);
+      setLocalData("vloxa_custom_templates", list);
+    }, (err) => {
+      console.warn("Failed to subscribe to custom templates:", err);
+    });
 
-        const { data, error } = await supabase
-          .from("custom_templates")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.warn("Custom templates query error:", error.message);
-        } else if (data) {
-          const list = data.map(item => {
-            const camel = toCamelCase(item);
-            camel.demoUrl = item[dCol] || item.demo_url || item.url || item.demo || "";
-            camel.categoryLabel = item[clCol] || item.category_label || item.categoryLabel || "";
-            return camel;
-          }) as Template[];
-          setCustomTemplates(list);
-          setLocalData("vloxa_custom_templates", list);
-        }
-      } catch (err) {
-        console.warn("Custom templates fetch error:", err);
-      }
-    };
-
-    loadCustomTemplates();
-
-    const templateChannel = supabase
-      .channel("public:custom_templates")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "custom_templates" },
-        () => {
-          loadCustomTemplates();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(templateChannel);
-    };
-  }, [isSupabaseActive]);
+    return () => unsub();
+  }, [isFirebaseActive]);
 
   // Add a new Custom Template (Admin only)
   const addCustomTemplate = async (templateData: Omit<Template, "id">) => {
@@ -807,14 +602,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newTemplate: Template = {
       id,
       ...templateData,
-      createdAt: new Date().toISOString()
     };
 
+    // Optimistic update
     const updatedList = [newTemplate, ...customTemplates];
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
       return;
     }
 
@@ -823,32 +618,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const path = `custom_templates/${id}`;
     try {
-      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
-
-      const payload: Record<string, any> = {
-        id,
+      await setDoc(doc(db, "custom_templates", id), {
         title: templateData.title,
         category: templateData.category,
+        categoryLabel: templateData.categoryLabel,
         image: templateData.image,
-        created_at: new Date().toISOString()
-      };
-      if (hasDemo) {
-        payload[dCol] = templateData.demoUrl;
-      }
-      if (hasCatLabel) {
-        payload[clCol] = templateData.categoryLabel;
-      }
-
-      const { error } = await supabase
-        .from("custom_templates")
-        .insert(payload);
-
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
-      }
+        demoUrl: templateData.demoUrl,
+        createdAt: new Date().toISOString()
+      });
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
+      handleFirestoreError(err, OperationType.WRITE, path);
     }
   };
 
@@ -861,7 +642,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
       return;
     }
 
@@ -870,16 +651,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const path = `custom_templates/${id}`;
     try {
-      const { error } = await supabase
-        .from("custom_templates")
-        .delete()
-        .eq("id", id);
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
-      }
+      await deleteDoc(doc(db, "custom_templates", id));
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
+      handleFirestoreError(err, OperationType.WRITE, path);
     }
   };
 
@@ -888,11 +664,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const userEmail = user?.email || "";
     const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
+    // Optimistic update
     const updatedList = customTemplates.map(t => t.id === id ? { ...t, ...templateData } : t);
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
       return;
     }
 
@@ -901,38 +678,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const path = `custom_templates/${id}`;
     try {
-      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
-
-      const payload: Record<string, any> = {
+      await updateDoc(doc(db, "custom_templates", id), {
         title: templateData.title,
         category: templateData.category,
-        image: templateData.image
-      };
-      if (hasDemo) {
-        payload[dCol] = templateData.demoUrl;
-      }
-      if (hasCatLabel) {
-        payload[clCol] = templateData.categoryLabel;
-      }
-
-      const { error } = await supabase
-        .from("custom_templates")
-        .update(payload)
-        .eq("id", id);
-      if (error) {
-        handleSupabaseError(error, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
-      }
+        categoryLabel: templateData.categoryLabel,
+        image: templateData.image,
+        demoUrl: templateData.demoUrl
+      });
     } catch (err) {
-      handleSupabaseError(err, SupabaseOperationType.WRITE, "custom_templates", user?.uid);
+      handleFirestoreError(err, OperationType.WRITE, path);
     }
   };
 
-  // Import all static TEMPLATES into Supabase "custom_templates" or localStorage "vloxa_custom_templates"
+  // Import all static TEMPLATES into firebase "custom_templates" or localStorage "vloxa_custom_templates"
   const importAllBaselineTemplates = async () => {
     const userEmail = user?.email || "";
     const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
 
+    // Filter which baseline templates are already in customTemplates to avoid duplicating
     const existingIds = new Set(customTemplates.map(t => t.id));
     const toImport = TEMPLATES.filter(t => !existingIds.has(t.id));
 
@@ -941,12 +706,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const nowStr = new Date().toISOString();
+    
+    // Create new list
     const importedTemplates = toImport.map(t => ({
       ...t,
       createdAt: nowStr
     }));
 
     const updatedList = [...customTemplates, ...importedTemplates];
+    
+    // Sort so custom templates sorted by createdAt newer first
     updatedList.sort((a, b) => {
       const dateA = a.createdAt || "";
       const dateB = b.createdAt || "";
@@ -956,7 +725,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCustomTemplates(updatedList);
     setLocalData("vloxa_custom_templates", updatedList);
 
-    if (!isSupabaseActive || !supabase) {
+    if (!isFirebaseActive || !db) {
       return;
     }
 
@@ -966,31 +735,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { demo: dCol, catLabel: clCol, hasDemo, hasCatLabel } = await detectSchemaColumns();
-
-      const rows = toImport.map(t => {
-        const payload: Record<string, any> = {
-          id: t.id,
-          title: t.title,
-          category: t.category,
-          image: t.image,
-          created_at: nowStr
-        };
-        if (hasDemo) {
-          payload[dCol] = t.demoUrl;
-        }
-        if (hasCatLabel) {
-          payload[clCol] = t.categoryLabel;
-        }
-        return payload;
-      });
-
-      const { error } = await supabase
-        .from("custom_templates")
-        .insert(rows);
-
-      if (error) {
-        console.error("Error committing batch import to Supabase database:", error.message);
+      // Chunk imports in batches of 20 to prevent huge single transactions, though 78 is safe (limit is 500)
+      const batchSize = 100;
+      for (let i = 0; i < toImport.length; i += batchSize) {
+        const chunk = toImport.slice(i, i + batchSize);
+        const batch = writeBatch(db);
+        chunk.forEach((t) => {
+          const docRef = doc(db, "custom_templates", t.id);
+          batch.set(docRef, {
+            title: t.title,
+            category: t.category,
+            categoryLabel: t.categoryLabel,
+            image: t.image,
+            demoUrl: t.demoUrl,
+            createdAt: nowStr
+          });
+        });
+        await batch.commit();
       }
     } catch (err) {
       console.error("Error committing batch import of baseline templates:", err);
@@ -1018,7 +779,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       favorites,
       domainRequests,
       isLoading,
-      isSupabaseActive,
+      isFirebaseActive,
       loginWithGoogle,
       loginWithEmail,
       registerWithEmail,

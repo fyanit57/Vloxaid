@@ -10,7 +10,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, initialTab = "login" }: AuthModalProps) {
-  const { loginWithGoogle, loginWithEmail, registerWithEmail, isSupabaseActive } = useApp();
+  const { loginWithGoogle, loginWithEmail, registerWithEmail, isFirebaseActive } = useApp();
   const [tab, setTab] = useState<"login" | "register">(initialTab);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -105,11 +105,11 @@ export default function AuthModal({ isOpen, onClose, initialTab = "login" }: Aut
           </div>
 
           {/* Fallback Notice */}
-          {!isSupabaseActive && (
+          {!isFirebaseActive && (
             <div className="mb-4 flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-xs">
               <Sparkles className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
               <div>
-                <span className="font-semibold">Mode Simulasi Aktif:</span> Supabase belum dihubungkan sepenuhnya. Anda dapat masuk dengan akun dummy/simulasi secara instan tanpa internet!
+                <span className="font-semibold">Mode Simulasi Aktif:</span> Firebase belum dihubungkan sepenuhnya. Anda dapat masuk dengan akun dummy/simulasi secara instan tanpa internet!
               </div>
             </div>
           )}

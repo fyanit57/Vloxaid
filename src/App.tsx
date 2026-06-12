@@ -97,7 +97,7 @@ export default function App() {
     favorites, 
     toggleFavorite, 
     requestDomain, 
-    isSupabaseActive,
+    isFirebaseActive,
     domainRequests,
     featuredTemplateIds,
     updateFeaturedTemplates,
@@ -210,7 +210,7 @@ export default function App() {
       } else if (queryLower.includes("cara") || queryLower.includes("bikin") || queryLower.includes("buat")) {
         response = "Sangat praktis! Cukup daftarkan akun Anda secara aman, pilih salah satu ratusan template siap pakai kami di bawah, dan isi profil bisnis Anda di dashboard. Kami akan meluncurkannya saat itu juga.";
       } else if (queryLower.includes("fitur") || queryLower.includes("kelebihan")) {
-        response = "Vloxa menawarkan server berkemampuan uptime 99.9%, integrasi database real-time Supabase, responsif ponsel cerdas, SEO dioptimalkan, serta dasbor instan yang ramah pemula.";
+        response = "Vloxa menawarkan server berkemampuan uptime 99.9%, integrasi database real-time Firebase, responsif ponsel cerdas, SEO dioptimalkan, serta dasbor instan yang ramah pemula.";
       }
 
       setChatMessages(prev => [...prev, { sender: "bot" as const, text: response }]);
@@ -231,7 +231,7 @@ export default function App() {
         .filter((t): t is Template => !!t)
     : allTemplates.filter(t => t.category === activeCategory);
 
-  const currentDemoTemplate = allTemplates.find(t => t.id === demoTemplate || t.title === demoTemplate);
+  const currentDemoTemplate = allTemplates.find(t => t.title === demoTemplate);
 
   return (
     <div className="min-h-screen bg-neutral-50/30 flex flex-col antialiased">
@@ -760,7 +760,7 @@ export default function App() {
                       {/* Controls aligned with design in image2.png */}
                       <div className="grid grid-cols-2 gap-3.5 pt-2">
                         <button
-                          onClick={() => setDemoTemplate(t.id)}
+                          onClick={() => setDemoTemplate(t.title)}
                           className="w-full rounded-xl border border-neutral-200 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-900 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                         >
                           Lihat Demo
@@ -886,7 +886,7 @@ export default function App() {
                 <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
                   <div className="text-center py-10 space-y-3">
                     <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest block">Live Demonstration</span>
-                    <h3 className="text-2xl font-bold font-display text-neutral-900">{currentDemoTemplate ? currentDemoTemplate.title : demoTemplate}</h3>
+                    <h3 className="text-2xl font-bold font-display text-neutral-900">{demoTemplate}</h3>
                     <p className="text-sm text-neutral-500 max-w-lg mx-auto">Kami sedang mensimulasikan lingkungan tampilan kustom. Semua interaksi, formulir transaksi dan antarmuka berjalan optimal, responsif serta ramah sentuhan.</p>
                   </div>
 
