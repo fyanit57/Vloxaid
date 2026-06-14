@@ -237,27 +237,27 @@ export default function App() {
     <div className="min-h-screen bg-neutral-50/30 flex flex-col antialiased">
       
       {/* Top Banner Accent */}
-      <div className="bg-[#dbef1a] py-2 px-4 overflow-hidden relative border-b border-neutral-200">
-        <div className="animate-marquee whitespace-nowrap text-xs font-bold text-neutral-900 flex items-center gap-8 py-0.5">
+      <div className="bg-neutral-950 py-2 px-4 overflow-hidden relative border-b border-neutral-800">
+        <div className="animate-marquee whitespace-nowrap text-xs font-bold text-white flex items-center gap-8 py-0.5">
           <span className="inline-flex items-center gap-1.5 uppercase font-extrabold tracking-wider shrink-0">
-            <Zap className="h-3.5 w-3.5 fill-neutral-950 text-neutral-950" />
+            <Zap className="h-3.5 w-3.5 fill-[#dbef1a] text-[#dbef1a]" />
             DISKON HINGGA 50% untuk paket tahunan — Kembangkan UMKM Digital Anda
           </span>
-          <span className="text-neutral-600 block shrink-0">|</span>
+          <span className="text-neutral-500 block shrink-0">|</span>
           <span className="inline-flex items-center gap-1 shrink-0">
-            Dapatkan Free Domain .com dan Cloud Hosting Indonesia Premium Hari Ini!
+            Dapatkan Free Domain <span className="text-[#dbef1a] font-extrabold">.my.id / .web.id</span> dan Cloud Hosting Indonesia Premium Hari Ini!
           </span>
-          <span className="text-neutral-600 shrink-0">|</span>
+          <span className="text-neutral-500 shrink-0">|</span>
           {/* Duplicates to repeat for continuous scroll flow without blank spaces */}
           <span className="inline-flex items-center gap-1.5 uppercase font-extrabold tracking-wider shrink-0">
-            <Zap className="h-3.5 w-3.5 fill-neutral-950 text-neutral-950 animate-pulse" />
+            <Zap className="h-3.5 w-3.5 fill-[#dbef1a] text-[#dbef1a] animate-pulse" />
             DISKON HINGGA 50% untuk paket tahunan — Kembangkan UMKM Digital Anda
           </span>
-          <span className="text-neutral-600 shrink-0">|</span>
+          <span className="text-neutral-500 shrink-0">|</span>
           <span className="inline-flex items-center gap-1 shrink-0">
-            Dapatkan Free Domain .com dan Cloud Hosting Indonesia Premium Hari Ini!
+            Dapatkan Free Domain <span className="text-[#dbef1a] font-extrabold">.my.id / .web.id</span> dan Cloud Hosting Indonesia Premium Hari Ini!
           </span>
-          <span className="text-neutral-600 shrink-0">|</span>
+          <span className="text-neutral-500 shrink-0">|</span>
         </div>
       </div>
 
