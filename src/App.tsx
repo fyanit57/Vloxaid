@@ -430,18 +430,85 @@ export default function App() {
 
               {/* Catchy Headline */}
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-neutral-900 leading-[1.12]">
-                Toko online UMKM siap berjualan, mulai{" "}
+                Website Siap Jualan Mulai{" "}
                 <span className="relative inline-block z-10 font-bold text-neutral-900 px-1">
-                  Rp100rb/bulan
+                  Rp350 Ribu
                   <span className="absolute left-0 right-0 bottom-1 h-3 bg-[#dbef1a] -z-10 transform -rotate-1 skew-x-3 rounded-xs" />
                 </span>
-                .
               </h1>
 
               {/* Subheading text */}
               <p className="text-base sm:text-lg text-neutral-600 font-medium max-w-xl leading-relaxed">
-                Vloxa menghadirkan infrastruktur digital premium untuk pengusaha Indonesia. Cepat, aman, dan dirancang untuk skala bisnis Anda.
+                Pilih template profesional, tampil lebih terpercaya, dan mulai dapatkan pelanggan secara online.
               </p>
+
+              {/* Interactive CTA Actions */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("templates-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center justify-between gap-1.5 px-3 py-3 bg-neutral-950 text-white rounded-2xl text-[11px] sm:text-xs font-black shadow-xs hover:bg-[#cbdc10] hover:text-neutral-950 transition-all cursor-pointer group"
+                >
+                  <span>Lihat Template</span>
+                  <span className="bg-[#dbef1a] group-hover:bg-neutral-950 group-hover:text-[#dbef1a] rounded-full h-4.5 w-4.5 flex items-center justify-center text-neutral-900 transition-colors shrink-0">
+                    <CheckSquare className="h-2.5 w-2.5" />
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("templates-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center justify-between gap-1.5 px-3 py-3 bg-white border border-neutral-250 text-neutral-900 rounded-2xl text-[11px] sm:text-xs font-black hover:border-neutral-400 transition-all cursor-pointer group"
+                >
+                  <span>Pilih Desain</span>
+                  <span className="bg-neutral-100 rounded-full h-4.5 w-4.5 flex items-center justify-center text-neutral-500 transition-colors shrink-0">
+                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4.5">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatInput("Saya ingin konsultasi gratis mengenai pembuatan website bisnis siap jualan di Vloxa.");
+                    const el = document.getElementById("vloxa-dashboard") || document.getElementById("hero");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center justify-between gap-1.5 px-3 py-3 bg-[#dbef1a] text-neutral-950 rounded-2xl text-[11px] sm:text-xs font-black hover:bg-[#cbdc10] transition-colors cursor-pointer group"
+                >
+                  <span>Konsultasi Gratis</span>
+                  <span className="bg-neutral-950 rounded-full h-4.5 w-4.5 flex items-center justify-center text-white transition-colors shrink-0">
+                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("paket-website");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center justify-between gap-1.5 px-3 py-3 bg-white border border-neutral-250 text-neutral-900 rounded-2xl text-[11px] sm:text-xs font-black hover:border-neutral-400 transition-all cursor-pointer group"
+                >
+                  <span>Mulai Sekarang</span>
+                  <span className="bg-neutral-900 text-white rounded-full h-4.5 w-4.5 flex items-center justify-center transition-colors shrink-0">
+                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4.5">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
 
               {/* Search Domain Input bar */}
               <form onSubmit={handleDomainSearch} className="max-w-xl">
@@ -463,6 +530,14 @@ export default function App() {
                   >
                     Cari Domain
                   </button>
+                </div>
+                <div className="mt-3 flex items-center gap-2 px-1">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-100 text-[10px] font-black text-emerald-800 border border-emerald-200 shrink-0 select-none">
+                    PROMO GRATIS
+                  </span>
+                  <span className="text-xs text-neutral-500 font-semibold leading-relaxed">
+                    Dapatkan domain gratis <span className="text-neutral-900 font-extrabold underline decoration-[#dbef1a] decoration-2 underline-offset-2">.my.id</span> atau <span className="text-neutral-900 font-extrabold underline decoration-[#dbef1a] decoration-2 underline-offset-2">.web.id</span> khusus untuk seluruh pendaftaran paket website!
+                  </span>
                 </div>
               </form>
 
@@ -1187,35 +1262,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Pricing/Benefits Section */}
-        <section id="pricing" className="py-20 px-6 bg-neutral-50 bg-grid-dots border-t border-neutral-100">
-          <div className="max-w-4xl mx-auto text-center space-y-12">
-            
-            <div className="space-y-4">
-              <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-neutral-900">Satu Paket Lengkap, Tiada Biaya Tersembunyi.</h2>
-              <p className="text-neutral-600 max-w-xl mx-auto text-sm font-medium">Bantu digitalisasikan UMKM Anda saat ini dengan fitur-fitur tangguh kami.</p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-              <div className="bg-white p-6 rounded-2xl border border-neutral-200 space-y-3 shadow-2xs">
-                <div className="h-10 w-10 bg-[#dbef1a]/20 text-neutral-900 rounded-xl flex items-center justify-center font-bold">✓</div>
-                <h4 className="font-bold text-neutral-900">Domain .com / .id Gratis</h4>
-                <p className="text-xs text-neutral-500 leading-relaxed">Berikan kredibilitas penuh ke pelanggan dengan alamat domain resmi gratis setahun.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-neutral-200 space-y-3 shadow-2xs">
-                <div className="h-10 w-10 bg-[#dbef1a]/20 text-neutral-900 rounded-xl flex items-center justify-center font-bold">✓</div>
-                <h4 className="font-bold text-neutral-900">Hosting Bandwidth Unmetered</h4>
-                <p className="text-xs text-neutral-500 leading-relaxed">Kecepatan server kencang bertenaga Cloud, website lancar diakses ribuan orang sekaligus.</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-neutral-200 space-y-3 shadow-2xs">
-                <div className="h-10 w-10 bg-[#dbef1a]/20 text-neutral-900 rounded-xl flex items-center justify-center font-bold">✓</div>
-                <h4 className="font-bold text-neutral-900">Asisten Bisnis AI</h4>
-                <p className="text-xs text-neutral-500 leading-relaxed">Dapatkan strategi bisnis, penulisan nama produk dan promosi terotomasi.</p>
-              </div>
-            </div>
-
-          </div>
-        </section>
 
       </main>
 
