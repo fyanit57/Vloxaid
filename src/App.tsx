@@ -1073,7 +1073,7 @@ export default function App() {
                     <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
                       <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
                     </div>
-                    <span>Notifikasi Pesanan ke WhatsApp</span>
+                    <span>Form Kontak</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
                     <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
@@ -1222,7 +1222,7 @@ export default function App() {
                     <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
                       <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
                     </div>
-                    <span>Notifikasi Pesanan ke WhatsApp</span>
+                    <span>Form Kontak</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
                     <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
