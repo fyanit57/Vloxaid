@@ -795,6 +795,398 @@ export default function App() {
           </div>
         </section>
 
+        {/* 03. PAKET LAYANAN WEBSITE Section */}
+        <section id="paket-website" className="py-20 px-6 bg-white border-t border-neutral-100">
+          <div className="max-w-7xl mx-auto">
+            
+            {/* Header following the image layout but adjusted to Vloxa theme */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-12">
+              <div className="space-y-4 max-w-2xl">
+                <div className="inline-flex items-center gap-2 bg-neutral-900/5 border border-neutral-900/10 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-neutral-800 transition-colors">
+                  <span className="h-2 w-2 rounded-full bg-[#dbef1a]" />
+                  03 . PILIHAN PAKET WEBSITE
+                </div>
+                <h2 className="font-display text-4xl sm:text-5xl font-black text-neutral-900 leading-tight">
+                  Harga{" "}
+                  <span className="relative inline-block px-1">
+                    <span className="italic relative z-10 text-neutral-900">pas di kantong</span>
+                    <span className="absolute inset-x-0 bottom-1 sm:bottom-2 h-3 sm:h-4 bg-[#dbef1a] -z-10 transform -rotate-1 skew-x-3 rounded-xs" />
+                  </span>
+                  , website kelas profesional.
+                </h2>
+              </div>
+              <p className="text-sm sm:text-base font-semibold text-neutral-500 max-w-sm lg:max-w-md leading-relaxed">
+                Pilih paket pembuatan website terbaik yang sesuai dengan skala bisnis Anda. Transparan, premium, tanpa biaya tersembunyi.
+              </p>
+            </div>
+
+            {/* Pricing Cards - 4 Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+              
+              {/* Card 1: Starter */}
+              <div className="flex flex-col bg-white border border-neutral-200 rounded-3xl p-6 space-y-6 shadow-xs hover:border-neutral-300 transition-all relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-black tracking-wider text-neutral-400">UMKM / PROMOSI</span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black text-neutral-900 bg-neutral-100 uppercase border border-neutral-250">Starter</span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2.5xl sm:text-3xl font-black text-neutral-900">Rp350.000</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-500 font-semibold">
+                    Investasi satu kali
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-display font-black text-neutral-900 text-base">
+                    Paket Starter
+                  </h3>
+                  <p className="text-xs text-neutral-600 leading-relaxed min-h-[48px]">
+                    Cocok untuk personal branding, UMKM, dan promosi produk secara terarah.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-6 border-t border-neutral-100 flex-1">
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Pilih template siap pakai</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>1 halaman (landing page)</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Mobile friendly</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Form kontak / WhatsApp</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Integrasi media sosial</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Bantuan setup dasar</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>1x revisi minor</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("templates-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between rounded-2xl bg-neutral-900 text-white py-3 px-4 font-bold text-xs hover:bg-neutral-950 transition-colors cursor-pointer group mt-auto"
+                >
+                  <span>Pilih Paket</span>
+                  <span className="bg-[#dbef1a] rounded-full h-5.5 w-5.5 flex items-center justify-center text-neutral-900 transition-transform group-hover:translate-x-0.5 shrink-0">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+              {/* Card 2: Business */}
+              <div className="flex flex-col bg-white border border-neutral-200 rounded-3xl p-6 space-y-6 shadow-xs hover:border-neutral-300 transition-all relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-black tracking-wider text-neutral-400">ONLINE TRANSAKSI</span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black text-neutral-900 bg-neutral-100 uppercase border border-neutral-250">Business</span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2.5xl sm:text-3xl font-black text-neutral-900">Rp1.500.000</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-500 font-semibold">
+                    Investasi satu kali
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-display font-black text-neutral-900 text-base">
+                    Paket Business
+                  </h3>
+                  <p className="text-xs text-neutral-600 leading-relaxed min-h-[48px]">
+                    Cocok untuk bisnis profesional yang ingin menerima pesanan secara online.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-6 border-t border-neutral-100 flex-1">
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold mb-2 bg-[#dbef1a]/10 p-2 rounded-xl text-[11px] border border-[#dbef1a]/20">
+                    <span>✨ Semua fitur Paket Starter ditambah:</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Website hingga 5 halaman</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Fitur checkout pesanan</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Katalog produk elegan</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Keranjang belanja aktif</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Integrasi pembayaran mudah</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Dashboard manajemen produk</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>SEO dasar & 2x revisi minor</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("templates-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between rounded-2xl bg-neutral-900 text-white py-3 px-4 font-bold text-xs hover:bg-neutral-950 transition-colors cursor-pointer group mt-auto"
+                >
+                  <span>Pilih Paket</span>
+                  <span className="bg-[#dbef1a] rounded-full h-5.5 w-5.5 flex items-center justify-center text-neutral-900 transition-transform group-hover:translate-x-0.5 shrink-0">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+              {/* Card 3: Pro Store (Featured / Pop out) */}
+              <div className="flex flex-col bg-neutral-950 border-2 border-[#dbef1a] rounded-3xl p-6 space-y-6 shadow-lg relative transform lg:-translate-y-2 z-10 text-white">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#dbef1a] text-neutral-950 font-black text-[9px] uppercase px-4 py-1.5 rounded-full tracking-wider border border-[#cbdc10] shadow-sm">
+                  REKOMENDASI TOKO ONLINE
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-black tracking-wider text-[#dbef1a]">PRO DIGITAL</span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black text-neutral-950 bg-[#dbef1a] uppercase">Pro Store</span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2.5xl sm:text-3xl font-black text-white">Rp2.500.000</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-400 font-semibold">
+                    Investasi satu kali
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-display font-black text-[#dbef1a] text-base">
+                    Paket Pro Store
+                  </h3>
+                  <p className="text-xs text-neutral-300 leading-relaxed min-h-[48px]">
+                    Sempurna untuk toko online profesional yang siap berkembang secara masif.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-6 border-t border-neutral-800 flex-1">
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold mb-2 bg-[#dbef1a]/15 p-2 rounded-xl text-[11px] border border-[#dbef1a]/30">
+                    <span className="text-[#dbef1a]">✨ Semua fitur Paket Business ditambah:</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Website hingga 10 halaman</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Fitur checkout otomatis premium</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Dukungan variasi spesifikasi produk</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Kode promo / voucher diskon</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Kalkulator ongkir otomatis</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Dashboard admin manajemen pesanan</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-300 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-[#dbef1a] stroke-[4.5]" />
+                    </div>
+                    <span>Optimasi performa & 3x revisi minor</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("templates-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between rounded-2xl bg-[#dbef1a] text-neutral-950 py-3.5 px-4 font-black text-xs hover:bg-[#cbdc10] transition-colors cursor-pointer group mt-auto"
+                >
+                  <span>Pilih Paket Pro</span>
+                  <span className="bg-neutral-950 rounded-full h-5.5 w-5.5 flex items-center justify-center text-white transition-transform group-hover:translate-x-0.5 shrink-0">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+              {/* Card 4: Custom */}
+              <div className="flex flex-col bg-white border border-neutral-200 rounded-3xl p-6 space-y-6 shadow-xs hover:border-neutral-300 transition-all relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-black tracking-wider text-neutral-400">ENTERPRISE / RETAIL</span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black text-neutral-900 bg-[#dbef1a]/20 uppercase border border-[#dbef1a]/30">Custom</span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2.5xl sm:text-3xl font-black text-neutral-900">Mulai Rp5jt</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-500 font-semibold">
+                    Sesuai kesepakatan scope
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-display font-black text-neutral-900 text-base">
+                    Paket Custom
+                  </h3>
+                  <p className="text-xs text-neutral-600 leading-relaxed min-h-[48px]">
+                    Paling ideal untuk bisnis korporasi dengan spesifikasi & kebutuhan fungsional kompleks.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-6 border-t border-neutral-100 flex-1">
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Desain 100% custom eksklusif</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Tampilan terintegrasi sesuai brandbook</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Fungsionalitas custom sesuai kebutuhan</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Integrasi API & sistem pihak ketiga</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Sistem booking, reseller, membership, dll</span>
+                  </div>
+                  <div className="flex items-start gap-2.5 text-xs text-neutral-700 font-semibold">
+                    <div className="h-4.5 w-4.5 rounded-full bg-[#dbef1a]/25 flex items-center justify-center shrink-0 border border-[#dbef1a]/40 mt-0.5">
+                      <Check className="h-2.5 w-2.5 text-neutral-900 stroke-[4.5]" />
+                    </div>
+                    <span>Konsultasi arsitektur & perencanaan proyek</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatInput("Saya ingin berkonsultasi mengenai pembuatan website dengan Paket Custom di Vloxa.");
+                    const el = document.getElementById("vloxa-dashboard") || document.getElementById("hero");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-between rounded-2xl bg-neutral-900 text-white py-3 px-4 font-bold text-xs hover:bg-neutral-950 transition-colors cursor-pointer group mt-auto"
+                >
+                  <span>Konsultasi WhatsApp</span>
+                  <span className="bg-[#dbef1a] rounded-full h-5.5 w-5.5 flex items-center justify-center text-neutral-900 transition-transform group-hover:translate-x-0.5 shrink-0">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+
+            </div>
+
+
+
+          </div>
+        </section>
+
         {/* Pricing/Benefits Section */}
         <section id="pricing" className="py-20 px-6 bg-neutral-50 bg-grid-dots border-t border-neutral-100">
           <div className="max-w-4xl mx-auto text-center space-y-12">
