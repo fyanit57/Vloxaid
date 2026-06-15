@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <path 
+    d="M 26,12 L 50,36 L 74,12" 
+    stroke="#dbef1a" 
+    strokeWidth="14" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+  />
+  <path 
+    d="M 26,88 L 50,64 L 74,88" 
+    stroke="#dbef1a" 
+    strokeWidth="14" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+  />
+  <path 
+    d="M 12,26 L 36,50 L 12,74" 
+    stroke="#dbef1a" 
+    strokeWidth="14" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+  />
+  <path 
+    d="M 88,26 L 64,50 L 88,74" 
+    stroke="#dbef1a" 
+    strokeWidth="14" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+  />
+</svg>
