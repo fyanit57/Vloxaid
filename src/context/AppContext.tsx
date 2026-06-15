@@ -98,7 +98,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [favorites, setFavorites] = useState<UserFavorite[]>([]);
   const [domainRequests, setDomainRequests] = useState<DomainRequest[]>([]);
-  const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["tokora", "fs-2", "ev-2", "ly-1", "tr-2"]);
+  const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFirebaseActive, setIsFirebaseActive] = useState(!isPlaceholderConfig && !!auth);
@@ -536,7 +536,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isFirebaseActive || !db) {
       // Offline fallback load from localStorage if exists
-      const fallback = getLocalData<string[]>("vloxa_featured_templates", ["tokora", "fs-2", "ev-2", "ly-1", "tr-2"]);
+      const fallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
       setFeaturedTemplateIds(fallback);
       return;
     }
@@ -551,7 +551,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } else {
         // If it doesn't exist, keep/set fallback
-        const currentFallback = getLocalData<string[]>("vloxa_featured_templates", ["tokora", "fs-2", "ev-2", "ly-1", "tr-2"]);
+        const currentFallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
         setFeaturedTemplateIds(currentFallback);
       }
     }, (err) => {
