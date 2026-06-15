@@ -226,11 +226,15 @@ export default function App() {
     ...TEMPLATES.filter(t => !customIds.has(t.id))
   ];
 
-  // Filter templates
+  // Filter templates: make custom templates from Firebase database part of the default "Template Pilihan" showcase
   const filteredTemplates = activeCategory === "featured" 
-    ? featuredTemplateIds
-        .map(id => allTemplates.find(t => t.id === id))
-        .filter((t): t is Template => !!t)
+    ? [
+        ...customTemplates,
+        ...featuredTemplateIds
+          .filter(id => !customIds.has(id))
+          .map(id => allTemplates.find(t => t.id === id))
+          .filter((t): t is Template => !!t)
+      ]
     : allTemplates.filter(t => t.category === activeCategory);
 
   const currentDemoTemplate = allTemplates.find(t => t.title === demoTemplate);
