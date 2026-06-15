@@ -69,7 +69,10 @@ export function setOnQuotaExceeded(callback: (errorMsg: string) => void) {
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errorMsg = error instanceof Error ? error.message : String(error);
-  const isQuota = errorMsg.toLowerCase().includes('quota') || errorMsg.includes('Quota exceeded');
+  const isQuota = 
+    errorMsg.toLowerCase().includes('quota') || 
+    errorMsg.includes('Quota exceeded') ||
+    (error && typeof error === 'object' && 'code' in error && (error as any).code === 'resource-exhausted');
 
   const errInfo: FirestoreErrorInfo = {
     error: errorMsg,
@@ -88,15 +91,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path
   };
   
-  console.error('Firestore Error details:', JSON.stringify(errInfo));
-  
   if (isQuota) {
+    console.warn('Firestore Quota Exceeded (falling back gracefully):', JSON.stringify(errInfo));
     if (onQuotaExceededCallback) {
       onQuotaExceededCallback(errorMsg);
     }
     return; // Prevent throwing and crashing the application
   }
 
+  console.error('Firestore Error details:', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
 
