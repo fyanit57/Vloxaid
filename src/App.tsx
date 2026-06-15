@@ -106,7 +106,9 @@ export default function App() {
     addCustomTemplate,
     updateCustomTemplate,
     deleteCustomTemplate,
-    importAllBaselineTemplates
+    importAllBaselineTemplates,
+    quotaExceeded,
+    quotaErrorMessage
   } = useApp();
 
   // Dialog / Modal state
@@ -304,11 +306,11 @@ export default function App() {
 
           {/* Desktop Nav Items */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-neutral-600">
-            <a href="#hero" className="hover:text-neutral-900 transition-colors">Hosting</a>
-            <a href="#templates-section" className="hover:text-neutral-900 transition-colors">Domains</a>
-            <a href="#templates-section" className="hover:text-neutral-900 transition-colors">Solutions</a>
-            <a href="#pricing" className="hover:text-neutral-900 transition-colors">Pricing</a>
-            <a href="#footer" className="hover:text-neutral-900 transition-colors">About</a>
+            <a href="#hero" className="hover:text-neutral-900 transition-colors">Home</a>
+            <a href="#templates-section" className="hover:text-[#dbef1a] md:hover:text-neutral-900 transition-colors">Template</a>
+            <a href="#paket-website" className="hover:text-neutral-900 transition-colors">Paket Website</a>
+            <a href="#about-section" className="hover:text-neutral-900 transition-colors">About</a>
+            <a href="#footer" className="hover:text-neutral-900 transition-colors" onClick={() => setIsChatOpen(true)}>Kontak</a>
           </nav>
 
           {/* Desktop Right Actions */}
@@ -368,11 +370,11 @@ export default function App() {
               className="md:hidden overflow-hidden mt-4 bg-white rounded-xl border border-neutral-100"
             >
               <div className="p-4 space-y-4 flex flex-col text-sm font-semibold text-neutral-600">
-                <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Hosting</a>
-                <a href="#templates-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Domains</a>
-                <a href="#templates-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Solutions</a>
-                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Pricing</a>
-                <a href="#footer" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">About</a>
+                <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Home</a>
+                <a href="#templates-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Template</a>
+                <a href="#paket-website" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Paket Website</a>
+                <a href="#about-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">About</a>
+                <a href="#footer" onClick={() => { setMobileMenuOpen(false); setIsChatOpen(true); }} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Kontak</a>
                 <div className="border-t pt-4 flex gap-3">
                   {user ? (
                     <a
@@ -414,6 +416,46 @@ export default function App() {
 
       {/* Main Body */}
       <main className="flex-1">
+
+        {/* Firebase Firestore Quota Limit Exceeded Banner */}
+        {quotaExceeded && (
+          <div id="firestore-quota-alert" className="max-w-7xl mx-auto mt-6 px-6">
+            <div className="bg-[#fff9e6] border border-[#ffe082] rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-5 items-start justify-between text-neutral-800">
+              <div className="flex gap-4">
+                <div className="h-10 w-10 rounded-xl bg-[#ffe082]/20 border border-[#ffe082]/80 flex items-center justify-center text-amber-900 shrink-0 mt-0.5">
+                  <Info className="h-5 w-5" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-[#b78103] text-base leading-tight">
+                    Firestore Database Read Quota Exceeded (Free Tier Spark Plan)
+                  </h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed font-semibold">
+                    Aplikasi saat ini telah mendeteksi batas kuota baca harian Firebase Anda yang terlampaui. Google Firebase membatasi pembacaan harian untuk Spark Plan sebesar 50.000 dokumen.
+                  </p>
+                  
+                  <div className="bg-white/60 rounded-xl p-4 border border-amber-200/50 space-y-1.5 text-xs text-neutral-600 font-semibold leading-relaxed">
+                    <p className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                      Kuota harian Anda akan kembali di-reset secara otomatis pada <strong className="text-neutral-800">hari esok</strong>.
+                    </p>
+                    <p className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                      Informasi penggunaan kuota selengkapnya dapat Anda saksikan di tabel <strong className="text-neutral-800">Spark Plan (Enterprise edition)</strong> di <a href="https://firebase.google.com/pricing#cloud-firestore" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Firebase Pricing <ExternalLink className="h-3 w-3" /></a>.
+                    </p>
+                    <p className="flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                      Untuk melanjutkan pengembangan atau pengujian tanpa batasan, silakan buka <a href="https://console.firebase.google.com/project/gen-lang-client-0485248882/firestore/databases/ai-studio-da1e2927-a704-46ab-9073-897d46ac2f0e/data?openUpgradeDialog=true" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Upgrades Dashboard Project Anda <ExternalLink className="h-3 w-3" /></a>.
+                    </p>
+                  </div>
+                  
+                  <p className="text-xs text-neutral-500 font-medium italic">
+                    💡 <strong>Sistem Berhasil Me-rescue Sesi Anda:</strong> Vloxa secara cerdas mengalihkan penyimpanan data Anda ke <strong>Sesi Offline Terlokalisasi (Browser Local Cache)</strong> secara real-time. Anda masih sangat aman untuk melakukan eksplorasi portofolio, memodifikasi profil UMKM, dan memantau draf watchlist domain Anda saat ini!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Hero Landing Section */}
         <section id="hero" className="relative py-12 md:py-24 px-6 overflow-hidden bg-grid-dots">
@@ -1430,7 +1472,58 @@ export default function App() {
           </div>
         </section>
 
+        {/* Section About */}
+        <section id="about-section" className="py-24 px-6 bg-neutral-50 border-t border-b border-neutral-100 relative overflow-hidden">
+          <div className="max-w-4xl mx-auto text-center space-y-12">
+            
+            {/* Header Badge & Title */}
+            <div className="space-y-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-900 bg-[#dbef1a] px-3.5 py-1.5 rounded-full inline-block">
+                Tentang Kami
+              </span>
+              <h2 className="text-3xl md:text-4xl font-display font-black tracking-tight text-neutral-950">
+                Solusi Website Profesional &amp; Praktis
+              </h2>
+            </div>
 
+            {/* Paragraph body */}
+            <p className="text-sm md:text-base text-neutral-600 leading-relaxed max-w-2xl mx-auto font-medium">
+              Kami menyediakan jasa pembuatan website profesional untuk UMKM, toko online, dan bisnis lokal. Dengan template premium dan proses yang praktis, bisnis Anda dapat memiliki website yang siap digunakan dalam waktu singkat.
+            </p>
+
+            {/* Key benefits list with Check mark badges */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 max-w-3xl mx-auto text-left">
+              {[
+                { 
+                  title: "Desain Profesional", 
+                  desc: "Tampilan modern, elegan, dan dirancang khusus agar bisnis Anda tampil tepercaya." 
+                },
+                { 
+                  title: "Proses Cepat & Mudah", 
+                  desc: "Tidak perlu ribet coding. Pilih template, selesaikan pembayaran, dan biarkan kami mengerjakan sisanya." 
+                },
+                { 
+                  title: "Support Setelah Selesai", 
+                  desc: "Layanan purnajual prima siap membantu mengawal keberlanjutan operasional website Anda." 
+                }
+              ].map((item, index) => (
+                <div 
+                  key={index} 
+                  className="bg-white border border-neutral-100/85 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col gap-4"
+                >
+                  <div className="h-10 w-10 rounded-xl bg-[#dbef1a]/25 border border-[#dbef1a]/50 flex items-center justify-center text-neutral-950 shrink-0">
+                    <Check className="h-4.5 w-4.5 stroke-[3.5]" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-neutral-905 text-sm mb-1">{item.title}</h3>
+                    <p className="text-xs text-neutral-500 leading-relaxed font-semibold">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </section>
 
       </main>
 

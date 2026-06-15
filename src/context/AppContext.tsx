@@ -28,7 +28,8 @@ import {
   db, 
   isPlaceholderConfig, 
   handleFirestoreError, 
-  OperationType 
+  OperationType,
+  setOnQuotaExceeded
 } from "../firebase";
 import { Template, TEMPLATES } from "../data/templates";
 
@@ -86,6 +87,8 @@ interface AppContextType {
   importAllBaselineTemplates: () => Promise<void>;
   activateAdminWithCode: (code: string) => Promise<boolean>;
   deactivateAdmin: () => Promise<void>;
+  quotaExceeded: boolean;
+  quotaErrorMessage: string;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -99,6 +102,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFirebaseActive, setIsFirebaseActive] = useState(!isPlaceholderConfig && !!auth);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [quotaErrorMessage, setQuotaErrorMessage] = useState("");
 
   const isAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
 
@@ -120,12 +125,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Set up Firebase Firestore Quota Exceeded listener
+  useEffect(() => {
+    setOnQuotaExceeded((msg) => {
+      console.warn("Firestore Quota Exceeded. Activating graceful offline fallback mode.");
+      setQuotaExceeded(true);
+      setQuotaErrorMessage(msg);
+      setIsFirebaseActive(false); // Instantly de-activates Firebase to prevent crash & switch to local caches
+    });
+  }, []);
+
   // Synchronize authentication state
   useEffect(() => {
     if (!isFirebaseActive || !auth || !db) {
       // Offline fallback mode initialization
-      const cachedUid = localStorage.getItem("vloxa_fallback_uid");
-      if (cachedUid) {
+      const cachedUid = user?.uid || localStorage.getItem("vloxa_fallback_uid") || "guest_vloxa";
+      
+      // Keep state session intact or set dummy session
+      if (user) {
+        localStorage.setItem("vloxa_fallback_uid", user.uid);
+        localStorage.setItem("vloxa_fallback_name", user.displayName || "Pengusaha UMKM");
+        localStorage.setItem("vloxa_fallback_email", user.email || "");
+      } else {
         const dummyUser = {
           uid: cachedUid,
           displayName: localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
@@ -133,22 +154,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           emailVerified: true,
         } as unknown as User;
         setUser(dummyUser);
-        
-        // Load offline data
-        setUserProfile(getLocalData<UserProfile>(`vloxa_profile_${cachedUid}`, {
-          userId: cachedUid,
-          name: dummyUser.displayName || "",
-          email: dummyUser.email || "",
-          bizType: "UMKM",
-          websiteTitle: "Toko Online Saya",
-          themeColor: "#dbef1a",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          role: (dummyUser.email === "fyanit57@gmail.com") ? "admin" : "member"
-        }));
-        setFavorites(getLocalData<UserFavorite[]>(`vloxa_favorites_${cachedUid}`, []));
-        setDomainRequests(getLocalData<DomainRequest[]>(`vloxa_domains_${cachedUid}`, []));
       }
+      
+      // Load offline data from localStorage cache
+      setUserProfile(getLocalData<UserProfile>(`vloxa_profile_${cachedUid}`, {
+        userId: cachedUid,
+        name: user?.displayName || localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
+        email: user?.email || localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
+        bizType: "UMKM",
+        websiteTitle: "Toko Online Saya",
+        themeColor: "#dbef1a",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        role: "member"
+      }));
+      setFavorites(getLocalData<UserFavorite[]>(`vloxa_favorites_${cachedUid}`, []));
+      setDomainRequests(getLocalData<DomainRequest[]>(`vloxa_domains_${cachedUid}`, []));
       setIsLoading(false);
       return;
     }
@@ -185,7 +206,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // 1. Subscribe to profile modifications real-time
         profileUnsub = onSnapshot(doc(db, "user_profiles", currentUser.uid), (docSnap) => {
           if (docSnap.exists()) {
-            setUserProfile(docSnap.data() as UserProfile);
+            const data = docSnap.data() as UserProfile;
+            setUserProfile(data);
+            setLocalData(`vloxa_profile_${currentUser.uid}`, data);
           } else {
             // First time setup - auto create profile
             const newProfile: UserProfile = {
@@ -202,7 +225,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             
             // Try to set document securely with error handling
             setDoc(doc(db, "user_profiles", currentUser.uid), newProfile)
-              .then(() => setUserProfile(newProfile))
+              .then(() => {
+                setUserProfile(newProfile);
+                setLocalData(`vloxa_profile_${currentUser.uid}`, newProfile);
+              })
               .catch((err) => handleFirestoreError(err, OperationType.WRITE, profilePath));
           }
         }, (err) => {
@@ -215,10 +241,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const favQuery = query(collection(db, "user_favorites"), where("userId", "==", currentUser.uid));
         favUnsub = onSnapshot(favQuery, (snap) => {
           const list: UserFavorite[] = [];
-          snap.forEach((doc) => {
-            list.push({ id: doc.id, ...doc.data() } as UserFavorite);
+          snap.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...docSnap.data() } as UserFavorite);
           });
           setFavorites(list);
+          setLocalData(`vloxa_favorites_${currentUser.uid}`, list);
         }, (err) => {
           if (err?.code !== "permission-denied") {
             handleFirestoreError(err, OperationType.GET, "user_favorites");
@@ -229,10 +256,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const domainQuery = query(collection(db, "domain_requests"), where("userId", "==", currentUser.uid));
         domainUnsub = onSnapshot(domainQuery, (snap) => {
           const list: DomainRequest[] = [];
-          snap.forEach((doc) => {
-            list.push({ id: doc.id, ...doc.data() } as DomainRequest);
+          snap.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...docSnap.data() } as DomainRequest);
           });
           setDomainRequests(list);
+          setLocalData(`vloxa_domains_${currentUser.uid}`, list);
           setIsLoading(false);
         }, (err) => {
           if (err?.code !== "permission-denied") {
@@ -798,7 +826,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteCustomTemplate,
       importAllBaselineTemplates,
       activateAdminWithCode,
-      deactivateAdmin
+      deactivateAdmin,
+      quotaExceeded,
+      quotaErrorMessage
     }}>
       {children}
     </AppContext.Provider>

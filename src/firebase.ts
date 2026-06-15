@@ -62,9 +62,17 @@ export interface FirestoreErrorInfo {
   }
 }
 
+export let onQuotaExceededCallback: ((errorMsg: string) => void) | null = null;
+export function setOnQuotaExceeded(callback: (errorMsg: string) => void) {
+  onQuotaExceededCallback = callback;
+}
+
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  const isQuota = errorMsg.toLowerCase().includes('quota') || errorMsg.includes('Quota exceeded');
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMsg,
     authInfo: {
       userId: auth?.currentUser?.uid || null,
       email: auth?.currentUser?.email || null,
@@ -79,7 +87,16 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
+  
   console.error('Firestore Error details:', JSON.stringify(errInfo));
+  
+  if (isQuota) {
+    if (onQuotaExceededCallback) {
+      onQuotaExceededCallback(errorMsg);
+    }
+    return; // Prevent throwing and crashing the application
+  }
+
   throw new Error(JSON.stringify(errInfo));
 }
 
