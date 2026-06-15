@@ -224,7 +224,13 @@ export default function App() {
   const allTemplates = [
     ...customTemplates,
     ...TEMPLATES.filter(t => !customIds.has(t.id))
-  ];
+  ].map(t => ({
+    ...t,
+    image: t.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+    demoUrl: t.demoUrl.startsWith("https://vloxa.id")
+      ? t.demoUrl.replace("https://vloxa.id", "https://template.vloxa.id")
+      : t.demoUrl
+  }));
 
   // Filter templates: make custom templates from Firebase database part of the default "Template Pilihan" showcase
   const filteredTemplates = activeCategory === "featured" 
@@ -1575,7 +1581,7 @@ export default function App() {
                   <span className="h-3.5 w-3.5 rounded-full bg-green-400 block shrink-0" />
                   <span className="text-xs font-mono ml-3 text-neutral-500 bg-white border px-3 py-1 rounded-md flex items-center gap-1.5 truncate max-w-md">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                    {currentDemoTemplate ? currentDemoTemplate.demoUrl : "https://vloxa.com/demo/preview-mode"}
+                    {currentDemoTemplate ? currentDemoTemplate.demoUrl : "https://template.vloxa.id/"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">

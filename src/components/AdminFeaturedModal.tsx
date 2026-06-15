@@ -67,9 +67,9 @@ export default function AdminFeaturedModal({
   // Form states for adding custom template
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState("F&B");
-  const [newDemoUrl, setNewDemoUrl] = useState("");
+  const [newDemoUrl, setNewDemoUrl] = useState("https://template.vloxa.id/");
   const [imageSource, setImageSource] = useState<"upload" | "url">("upload");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -104,8 +104,8 @@ export default function AdminFeaturedModal({
   const handleCancelEdit = () => {
     setEditingId(null);
     setNewTitle("");
-    setNewDemoUrl("");
-    setImageUrl("");
+    setNewDemoUrl("https://template.vloxa.id/");
+    setImageUrl("https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80");
     setImageFile(null);
     setImagePreview(null);
     setFormMessage(null);
@@ -185,7 +185,13 @@ export default function AdminFeaturedModal({
   const allTemplates = [
     ...customTemplates,
     ...TEMPLATES.filter(t => !customIds.has(t.id))
-  ];
+  ].map(t => ({
+    ...t,
+    image: t.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+    demoUrl: t.demoUrl.startsWith("https://vloxa.id")
+      ? t.demoUrl.replace("https://vloxa.id", "https://template.vloxa.id")
+      : t.demoUrl
+  }));
 
   // Filter templates inside selection modal
   const filteredTemplates = allTemplates.filter((t) => {
@@ -376,8 +382,8 @@ export default function AdminFeaturedModal({
 
       // Reset form variables
       setNewTitle("");
-      setNewDemoUrl("");
-      setImageUrl("");
+      setNewDemoUrl("https://template.vloxa.id/");
+      setImageUrl("https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80");
       setImageFile(null);
       setImagePreview(null);
       if (fileInputRef.current) {
@@ -801,7 +807,7 @@ export default function AdminFeaturedModal({
                         <input
                           type="url"
                           required
-                          placeholder="https://vloxa.id/demo/..."
+                          placeholder="https://template.vloxa.id/demo/..."
                           value={newDemoUrl}
                           onChange={(e) => setNewDemoUrl(e.target.value)}
                           className="w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-3 py-2.5 text-xs text-neutral-800 placeholder-neutral-400 focus:border-neutral-400 focus:outline-hidden"

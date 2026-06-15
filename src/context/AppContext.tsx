@@ -774,8 +774,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             title: t.title,
             category: t.category,
             categoryLabel: t.categoryLabel,
-            image: t.image,
-            demoUrl: t.demoUrl,
+            image: t.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
+            demoUrl: t.demoUrl.startsWith("https://vloxa.id")
+              ? t.demoUrl.replace("https://vloxa.id", "https://template.vloxa.id")
+              : t.demoUrl,
             createdAt: nowStr
           });
         });
