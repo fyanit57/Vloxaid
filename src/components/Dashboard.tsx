@@ -11,7 +11,8 @@ import {
   Sparkles, 
   RefreshCw, 
   CheckCircle, 
-  ExternalLink 
+  ExternalLink,
+  EyeOff 
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -30,6 +31,8 @@ export default function Dashboard() {
     isRealAdmin,
     isAdminPreviewActive,
     setIsAdminPreviewActive,
+    isDashboardVisible,
+    setIsDashboardVisible,
     activateAdminWithCode,
     deactivateAdmin
   } = useApp();
@@ -118,6 +121,14 @@ export default function Dashboard() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Penyimpanan Lokal Aktif (Offline)
           </span>
+          <button
+            onClick={() => setIsDashboardVisible(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50 border border-neutral-200 rounded-xl transition-all cursor-pointer"
+            title="Sembunyikan Dashboard"
+          >
+            <EyeOff className="h-3.5 w-3.5" />
+            Sembunyikan
+          </button>
         </div>
       </div>
 

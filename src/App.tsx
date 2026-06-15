@@ -157,14 +157,12 @@ export default function App() {
       const domainName = rawDomain.includes(".") ? rawDomain : `${rawDomain}${suffix}`;
 
       await requestDomain(domainName);
-      setDomainAlert(`Domain "${domainName}" berhasil disimpan di watchlist Anda! Admin Vloxa akan segera meninjau ketersediaannya.`);
+      setDomainAlert(`Domain "${domainName}" berhasil tercatat! Silakan kirim chat di kanan bawah untuk aktivasi.`);
       setDomainInput("");
       
-      // Auto-scroll to dashboard
-      const dashElement = document.getElementById("vloxa-dashboard");
-      if (dashElement) {
-        dashElement.scrollIntoView({ behavior: "smooth" });
-      }
+      // Open chat with autofill query
+      setIsChatOpen(true);
+      setChatInput(`Halo, saya baru saja mendaftarkan domain "${domainName}" di Vloxa. Bagaimana cara melanjutkannya?`);
 
       setTimeout(() => setDomainAlert(null), 8000);
     } catch (err) {
@@ -175,14 +173,15 @@ export default function App() {
 
   // Safe Interactive Choose template handler
   const handleChooseTemplate = (templateId: string) => {
-    // Toggle favorite or auto-assign to user's virtual workspace
+    // Toggle favorite/selected list
     toggleFavorite(templateId);
     
-    // Smooth scroll to dashboard
-    const dashElement = document.getElementById("vloxa-dashboard");
-    if (dashElement) {
-      dashElement.scrollIntoView({ behavior: "smooth" });
-    }
+    const found = TEMPLATES.find(t => t.id === templateId);
+    const templateName = found ? found.title : "Template Pilihan";
+    
+    // Open chat with customized pre-filled message
+    setIsChatOpen(true);
+    setChatInput(`Halo Vloxa! Saya suka template "${templateName}" (${templateId}). Berapa biayanya jika langsung di-online-kan hari ini?`);
   };
 
   // Bot response logic
@@ -360,21 +359,14 @@ export default function App() {
 
           {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <a 
-              href="#vloxa-dashboard"
-              className="text-sm font-bold text-neutral-700 hover:text-neutral-950 transition-colors px-3 py-1.5"
-            >
-              Dashboard
-            </a>
-
             <button 
               onClick={() => { 
-                const dash = document.getElementById("vloxa-dashboard");
-                if (dash) dash.scrollIntoView({ behavior: "smooth" });
+                const t = document.getElementById("templates-section");
+                if (t) t.scrollIntoView({ behavior: "smooth" });
               }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#dbef1a] px-5 py-2.5 text-sm font-bold text-neutral-950 hover:bg-[#cbdc10] transition-colors shadow-2xs cursor-pointer"
             >
-              Get Started
+              Pilih Template
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
@@ -406,23 +398,16 @@ export default function App() {
                 <a href="#paket-website" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Paket Website</a>
                 <a href="#about-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">About</a>
                 <a href="#footer" onClick={() => { setMobileMenuOpen(false); setIsChatOpen(true); }} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Kontak</a>
-                <div className="border-t pt-4 flex gap-3">
-                    <a
-                      href="#vloxa-dashboard"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="text-center flex-1 py-2.5 rounded-xl border border-neutral-200 font-bold text-neutral-700 text-xs"
-                    >
-                      Dashboard
-                    </a>
+                <div className="border-t pt-4">
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        const d = document.getElementById("vloxa-dashboard");
+                        const d = document.getElementById("templates-section");
                         if (d) d.scrollIntoView({ behavior: "smooth" });
                       }}
-                      className="flex-1 py-1 px-3 rounded-xl bg-[#dbef1a] text-center font-bold text-neutral-900 text-xs cursor-pointer"
+                      className="w-full py-2.5 rounded-xl bg-[#dbef1a] text-center font-bold text-neutral-900 text-xs cursor-pointer"
                     >
-                      Get Started
+                      Pilih Template Website
                     </button>
                 </div>
               </div>
@@ -543,9 +528,8 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => {
+                    setIsChatOpen(true);
                     setChatInput("Saya ingin konsultasi gratis mengenai pembuatan website bisnis siap jualan di Vloxa.");
-                    const el = document.getElementById("vloxa-dashboard") || document.getElementById("hero");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
                   className="flex items-center justify-between gap-1.5 px-3 py-3 bg-[#dbef1a] text-neutral-950 rounded-2xl text-[11px] sm:text-xs font-black hover:bg-[#cbdc10] transition-colors cursor-pointer group"
                 >
@@ -787,13 +771,6 @@ export default function App() {
 
             </div>
 
-          </div>
-        </section>
-
-        {/* Public Playable Workspace Section */}
-        <section id="vloxa-dashboard" className="bg-neutral-50/50 py-12 px-6 border-t border-b border-neutral-100">
-          <div className="max-w-7xl mx-auto">
-            <Dashboard />
           </div>
         </section>
 
@@ -1489,9 +1466,8 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => {
+                    setIsChatOpen(true);
                     setChatInput("Saya ingin berkonsultasi mengenai pembuatan website dengan Paket Custom di Vloxa.");
-                    const el = document.getElementById("vloxa-dashboard") || document.getElementById("hero");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
                   }}
                   className="w-full flex items-center justify-between rounded-2xl bg-neutral-900 text-white py-3 px-4 font-bold text-xs hover:bg-neutral-950 transition-colors cursor-pointer group mt-auto"
                 >
