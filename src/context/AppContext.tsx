@@ -101,7 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [favorites, setFavorites] = useState<UserFavorite[]>([]);
   const [domainRequests, setDomainRequests] = useState<DomainRequest[]>([]);
-  const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
+  const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["bs-17", "fs-2", "tr-2", "sh-12", "ly-4", "bs-14", "fb-2"]);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFirebaseActive, setIsFirebaseActive] = useState(false);
@@ -474,62 +474,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Subscribe to Featured Templates (independent of logged-in state)
   useEffect(() => {
-    if (!isFirebaseActive || !db) {
-      // Offline fallback load from localStorage if exists
-      const fallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
-      setFeaturedTemplateIds(fallback);
-      return;
-    }
+    const targetIds = ["bs-17", "fs-2", "tr-2", "sh-12", "ly-4", "bs-14", "fb-2"];
+    setFeaturedTemplateIds(targetIds);
+    setLocalData("vloxa_featured_templates", targetIds);
+  }, []);
 
-    const unsub = onSnapshot(doc(db, "app_config", "featured"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data && Array.isArray(data.templateIds)) {
-          setFeaturedTemplateIds(data.templateIds);
-          // Persist to local cache as fallback
-          setLocalData("vloxa_featured_templates", data.templateIds);
-        }
-      } else {
-        // If it doesn't exist, keep/set fallback
-        const currentFallback = getLocalData<string[]>("vloxa_featured_templates", ["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
-        setFeaturedTemplateIds(currentFallback);
-      }
-    }, (err) => {
-      console.warn("Failed to subscribe to featured templates:", err);
-    });
-
-    return () => unsub();
-  }, [isFirebaseActive]);
-
-  // Update Featured Templates (Admin only)
+  // Update Featured Templates (Admin only - local and storage only, bypassing Firebase)
   const updateFeaturedTemplates = async (ids: string[]) => {
-    // Check if current user is admin
-    const userEmail = user?.email || "";
-    const isAdminUser = userEmail === "fyanit57@gmail.com" || userProfile?.role === "admin";
-
-    // Update local state and storage first (optimistic update)
     setFeaturedTemplateIds(ids);
     setLocalData("vloxa_featured_templates", ids);
-
-    if (!isFirebaseActive || !db) {
-      return;
-    }
-
-    if (!isAdminUser) {
-      console.error("Only admin can update featured templates configuration.");
-      return;
-    }
-
-    const path = "app_config/featured";
-    try {
-      await setDoc(doc(db, "app_config", "featured"), {
-        templateIds: ids,
-        updatedAt: new Date().toISOString(),
-        updatedBy: userEmail
-      });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, path);
-    }
   };
 
   // Subscribe to Dynamic Custom Templates (independent of logged-in state)

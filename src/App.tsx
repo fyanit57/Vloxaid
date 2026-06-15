@@ -225,15 +225,12 @@ export default function App() {
       : t.demoUrl
   }));
 
-  // Filter templates: make custom templates from Firebase database part of the default "Template Pilihan" showcase
+  // Filter templates: only show the 7 requested items in "Template Pilihan" (featured)
+  const targetFeaturedIds = ["bs-17", "fs-2", "tr-2", "sh-12", "ly-4", "bs-14", "fb-2"];
   const filteredTemplates = activeCategory === "featured" 
-    ? [
-        ...customTemplates,
-        ...featuredTemplateIds
-          .filter(id => !customIds.has(id))
-          .map(id => allTemplates.find(t => t.id === id))
-          .filter((t): t is Template => !!t)
-      ]
+    ? targetFeaturedIds
+        .map(id => allTemplates.find(t => t.id === id))
+        .filter((t): t is Template => !!t)
     : allTemplates.filter(t => t.category === activeCategory);
 
   const currentDemoTemplate = allTemplates.find(t => t.title === demoTemplate);

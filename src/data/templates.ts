@@ -26,7 +26,7 @@ export const TEMPLATES: Template[] = [
     title: "Restaurant",
     category: "F&B",
     categoryLabel: "Food & Drink",
-    image: restaurantImg,
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80",
     demoUrl: "https://vloxa.id/restaurant/"
   },
   {
@@ -594,6 +594,14 @@ export const TEMPLATES: Template[] = [
     categoryLabel: "Bisnis",
     image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=600&q=80",
     demoUrl: "https://vloxa.id/demo/jasa-angkut-barang"
+  },
+  {
+    id: "bs-17",
+    title: "Tokora",
+    category: "Bisnis",
+    categoryLabel: "Bisnis",
+    image: "https://template.vloxa.id/wp-content/uploads/2026/06/Tokora.webp",
+    demoUrl: "https://vloxa.id/demo/tokora"
   },
 
   // === EDUKASI ===
