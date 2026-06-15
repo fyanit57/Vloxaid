@@ -125,6 +125,8 @@ export default function App() {
   const [domainAlert, setDomainAlert] = useState<string | null>(null);
   const [demoTemplate, setDemoTemplate] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [modalSearchQuery, setModalSearchQuery] = useState("");
+  const [modalActiveCategory, setModalActiveCategory] = useState("all");
 
   // Hero Image Carousel Slide State
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1564,15 +1566,23 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-3">
                   {currentDemoTemplate && (
-                    <a 
-                      href={currentDemoTemplate.demoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-neutral-600 hover:text-neutral-900 flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      Buka di Tab Baru
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <>
+                      <button 
+                        onClick={() => setDemoTemplate("Koleksi Seluruh Demo")}
+                        className="text-xs font-bold text-neutral-600 hover:text-neutral-900 bg-white border border-neutral-200 px-3 py-1 rounded-lg transition-colors cursor-pointer"
+                      >
+                        ← Semua Demo
+                      </button>
+                      <a 
+                        href={currentDemoTemplate.demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-neutral-600 hover:text-neutral-900 flex items-center gap-1 bg-white border border-neutral-200 px-3 py-1 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Buka di Tab Baru
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </>
                   )}
                   <button 
                     onClick={() => setDemoTemplate(null)}
@@ -1596,31 +1606,144 @@ export default function App() {
                   />
                 </div>
               ) : (
-                <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
-                  <div className="text-center py-10 space-y-3">
-                    <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest block">Live Demonstration</span>
-                    <h3 className="text-2xl font-bold font-display text-neutral-900">{demoTemplate}</h3>
-                    <p className="text-sm text-neutral-500 max-w-lg mx-auto">Kami sedang mensimulasikan lingkungan tampilan kustom. Semua interaksi, formulir transaksi dan antarmuka berjalan optimal, responsif serta ramah sentuhan.</p>
-                  </div>
+                <div className="p-6 md:p-8 space-y-6 max-h-[75vh] overflow-y-auto bg-neutral-50/50">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-100 pb-5">
+                    <div className="space-y-1">
+                      <span className="text-xs font-black uppercase tracking-widest text-neutral-400 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200">Catalog Library</span>
+                      <h3 className="text-2xl font-black font-display text-neutral-900">Koleksi Seluruh Demo Website</h3>
+                      <p className="text-xs sm:text-sm text-neutral-500 font-semibold max-w-lg leading-relaxed">
+                        Pilih template siap pakai terbaik untuk online-kan bisnis Anda hari ini dengan server Vloxa super cepat.
+                      </p>
+                    </div>
 
-                  <div className="border border-neutral-100 rounded-xl p-6 bg-neutral-50 space-y-4">
-                    <div className="h-3 bg-neutral-200 rounded-full w-24" />
-                    <div className="h-8 bg-neutral-300 rounded-full w-3/4" />
-                    <div className="h-4 bg-neutral-200 rounded-full w-full" />
-                    <div className="h-4 bg-neutral-200 rounded-full w-5/6" />
-                    <div className="grid grid-cols-3 gap-4 pt-4">
-                      <div className="h-24 bg-neutral-300 rounded-xl" />
-                      <div className="h-24 bg-neutral-300 rounded-xl" />
-                      <div className="h-24 bg-neutral-300 rounded-xl" />
+                    {/* Search bar inside popup */}
+                    <div className="relative w-full md:w-72">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-neutral-400">
+                        <Search className="h-4 w-4" />
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Cari template website..."
+                        value={modalSearchQuery}
+                        onChange={(e) => setModalSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-250 bg-white text-xs font-semibold text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-colors"
+                      />
                     </div>
                   </div>
 
-                  <div className="text-center">
+                  {/* Category Filter Chips inside popup */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      onClick={() => setModalActiveCategory("all")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                        modalActiveCategory === "all"
+                          ? "bg-neutral-900 text-white border-neutral-900"
+                          : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300"
+                      }`}
+                    >
+                      Semua Kategori
+                    </button>
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        onClick={() => setModalActiveCategory(cat.value)}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          modalActiveCategory === cat.value
+                            ? "bg-neutral-900 text-white border-neutral-900"
+                            : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300"
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Large Catalog Grid */}
+                  {allTemplates.filter(t => {
+                    const matchesCategory = modalActiveCategory === "all" || 
+                                           t.category.toLowerCase() === modalActiveCategory.toLowerCase() ||
+                                           (modalActiveCategory === "featured" && ["bs-17", "fs-2", "tr-2", "sh-12", "ly-4", "bs-14", "fb-2"].includes(t.id));
+                    const matchesSearch = t.title.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+                                          t.categoryLabel.toLowerCase().includes(modalSearchQuery.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                  }).length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {allTemplates
+                        .filter(t => {
+                          const matchesCategory = modalActiveCategory === "all" || 
+                                                 t.category.toLowerCase() === modalActiveCategory.toLowerCase() ||
+                                                 (modalActiveCategory === "featured" && ["bs-17", "fs-2", "tr-2", "sh-12", "ly-4", "bs-14", "fb-2"].includes(t.id));
+                          const matchesSearch = t.title.toLowerCase().includes(modalSearchQuery.toLowerCase()) ||
+                                                t.categoryLabel.toLowerCase().includes(modalSearchQuery.toLowerCase());
+                          return matchesCategory && matchesSearch;
+                        })
+                        .map((t) => (
+                          <div 
+                            key={t.id} 
+                            className="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-300 transition-all"
+                          >
+                            <div className="relative aspect-video overflow-hidden bg-neutral-100">
+                              <img 
+                                src={t.image} 
+                                alt={t.title}
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                              />
+                              <div className="absolute top-2.5 left-2.5 bg-neutral-900/90 backdrop-blur-xs text-[10px] font-black uppercase text-[#dbef1a] px-2.5 py-1 rounded-md border border-neutral-800">
+                                {t.categoryLabel}
+                              </div>
+                            </div>
+
+                            <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
+                              <div>
+                                <h4 className="font-display font-black text-neutral-900 text-sm tracking-tight">{t.title}</h4>
+                                <p className="text-[10px] text-neutral-400 uppercase font-black tracking-wider mt-0.5">{t.id}</p>
+                              </div>
+
+                              <div className="flex items-center gap-2 pt-2 border-t border-neutral-100">
+                                <button
+                                  onClick={() => setDemoTemplate(t.title)}
+                                  className="flex-1 rounded-lg border border-neutral-200 py-2 text-[11px] font-bold text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  Lihat Demo
+                                  <ExternalLink className="h-3 w-3 inline-block" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    handleChooseTemplate(t.id);
+                                    setDemoTemplate(null);
+                                  }}
+                                  className="flex-1 rounded-lg bg-[#dbef1a] hover:bg-[#cbdc10] text-neutral-950 py-2 text-[11px] font-black transition-colors shadow-2xs cursor-pointer text-center"
+                                >
+                                  Pilih
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16 border-2 border-dashed border-neutral-250 rounded-2xl bg-white p-8 space-y-3">
+                      <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 mx-auto">
+                        <Search className="h-5 w-5" />
+                      </div>
+                      <h4 className="font-display font-bold text-neutral-800 text-sm">Tidak ada template ditemukan</h4>
+                      <p className="text-xs text-neutral-400 max-w-xs mx-auto">Coba cari kata kunci lain atau ubah kategori pilihan Anda.</p>
+                      <button
+                        onClick={() => { setModalSearchQuery(""); setModalActiveCategory("all"); }}
+                        className="text-xs font-extrabold text-neutral-900 underline underline-offset-4 cursor-pointer"
+                      >
+                        Reset Pencarian
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="text-center pt-4">
                     <button 
                       onClick={() => setDemoTemplate(null)}
-                      className="rounded-xl bg-neutral-900 text-white px-6 py-2.5 text-sm font-semibold hover:bg-neutral-800"
+                      className="rounded-xl bg-neutral-900 hover:bg-neutral-950 text-white px-7 py-3 text-xs font-black transition-colors cursor-pointer"
                     >
-                      Tutup Simulasi
+                      Tutup Katalog
                     </button>
                   </div>
                 </div>
