@@ -357,6 +357,14 @@ export const TEMPLATES: Template[] = [
     image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=600&q=80",
     demoUrl: "https://vloxa.id/demo/parfume"
   },
+  {
+    id: "tokora",
+    title: "Tokora",
+    category: "Fashion",
+    categoryLabel: "Fashion",
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80",
+    demoUrl: "https://vloxa.id/demo/tokora"
+  },
 
   // === OTOMOTIF ===
   {
