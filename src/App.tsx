@@ -841,18 +841,33 @@ export default function App() {
                     className="group flex flex-col bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-neutral-300 transition-all"
                   >
                     {/* Template Image Section */}
-                    <div className="relative aspect-video overflow-hidden bg-neutral-100 border-b border-neutral-100">
+                    <a 
+                      href={t.demoUrl}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setDemoTemplate(t.title);
+                      }}
+                      className="relative block aspect-video overflow-hidden bg-neutral-100 border-b border-neutral-100 cursor-pointer group/img"
+                    >
                       <img 
                         src={t.image} 
                         alt={t.title} 
                         referrerPolicy="no-referrer"
-                        className="object-cover object-top w-full h-full transition-[object-position] duration-[3500ms] ease-in-out group-hover:object-bottom cursor-pointer" 
+                        className="object-cover object-top w-full h-full transition-[all,object-position] duration-[3500ms,3500ms] ease-in-out group-hover/img:scale-105 group-hover:object-bottom" 
                       />
+                      
+                      {/* Interactive hover overlay */}
+                      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <span className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[11px] font-bold text-neutral-800 shadow-md flex items-center gap-1.5 transform translate-y-1 group-hover/img:translate-y-0 transition-all duration-300">
+                          Pratinjau Demo <ExternalLink className="h-3 w-3" />
+                        </span>
+                      </div>
                       
                       {/* Favorite Button */}
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           if (!user) {
                             setAuthTab("login");
                             setIsAuthOpen(true);
@@ -865,7 +880,7 @@ export default function App() {
                       >
                         <Heart className={`h-4 w-4 ${isFavorited ? "fill-red-500 text-red-500" : "text-neutral-500"}`} />
                       </button>
-                    </div>
+                    </a>
 
                     {/* Content metadata */}
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
@@ -880,13 +895,17 @@ export default function App() {
 
                       {/* Controls aligned with design in image2.png */}
                       <div className="grid grid-cols-2 gap-3.5 pt-2">
-                        <button
-                          onClick={() => setDemoTemplate(t.title)}
+                        <a
+                          href={t.demoUrl}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDemoTemplate(t.title);
+                          }}
                           className="w-full rounded-xl border border-neutral-200 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300 hover:text-neutral-900 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                         >
                           Lihat Demo
                           <ExternalLink className="h-3 w-3 inline-block" />
-                        </button>
+                        </a>
                         <button
                           onClick={() => handleChooseTemplate(t.id)}
                           className="w-full rounded-xl bg-[#dbef1a] text-neutral-950 py-2.5 text-xs font-extrabold hover:bg-[#cbdc10] transition-colors shadow-2xs cursor-pointer"
