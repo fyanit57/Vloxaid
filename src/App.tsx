@@ -421,42 +421,48 @@ export default function App() {
       {/* Main Body */}
       <main className="flex-1">
 
-        {/* Firebase Firestore Quota Limit Exceeded Banner */}
+        {/* Firebase Firestore Quota / Connection issues Graceful Fallback Banner */}
         {quotaExceeded && (
           <div id="firestore-quota-alert" className="max-w-7xl mx-auto mt-6 px-6">
             <div className="bg-[#fff9e6] border border-[#ffe082] rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-5 items-start justify-between text-neutral-800">
-              <div className="flex gap-4">
-                <div className="h-10 w-10 rounded-xl bg-[#ffe082]/20 border border-[#ffe082]/80 flex items-center justify-center text-amber-900 shrink-0 mt-0.5">
-                  <Info className="h-5 w-5" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-bold text-[#b78103] text-base leading-tight">
-                    Firestore Database Read Quota Exceeded (Free Tier Spark Plan)
-                  </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed font-semibold">
-                    Aplikasi saat ini telah mendeteksi batas kuota baca harian Firebase Anda yang terlampaui. Google Firebase membatasi pembacaan harian untuk Spark Plan sebesar 50.000 dokumen.
-                  </p>
-                  
-                  <div className="bg-white/60 rounded-xl p-4 border border-amber-200/50 space-y-1.5 text-xs text-neutral-600 font-semibold leading-relaxed">
-                    <p className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
-                      Kuota harian Anda akan kembali di-reset secara otomatis pada <strong className="text-neutral-800">hari esok</strong>.
-                    </p>
-                    <p className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
-                      Informasi penggunaan kuota selengkapnya dapat Anda saksikan di tabel <strong className="text-neutral-800">Spark Plan (Enterprise edition)</strong> di <a href="https://firebase.google.com/pricing#cloud-firestore" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Firebase Pricing <ExternalLink className="h-3 w-3" /></a>.
-                    </p>
-                    <p className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
-                      Untuk melanjutkan pengembangan atau pengujian tanpa batasan, silakan buka <a href="https://console.firebase.google.com/project/gen-lang-client-0485248882/firestore/databases/ai-studio-da1e2927-a704-46ab-9073-897d46ac2f0e/data?openUpgradeDialog=true" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Upgrades Dashboard Project Anda <ExternalLink className="h-3 w-3" /></a>.
-                    </p>
-                  </div>
-                  
-                  <p className="text-xs text-neutral-500 font-medium italic">
-                    💡 <strong>Sistem Berhasil Me-rescue Sesi Anda:</strong> Vloxa secara cerdas mengalihkan penyimpanan data Anda ke <strong>Sesi Offline Terlokalisasi (Browser Local Cache)</strong> secara real-time. Anda masih sangat aman untuk melakukan eksplorasi portofolio, memodifikasi profil UMKM, dan memantau draf watchlist domain Anda saat ini!
-                  </p>
-                </div>
-              </div>
+               <div className="flex gap-4">
+                 <div className="h-10 w-10 rounded-xl bg-[#ffe082]/20 border border-[#ffe082]/80 flex items-center justify-center text-amber-900 shrink-0 mt-0.5">
+                   <Info className="h-5 w-5" />
+                 </div>
+                 <div className="space-y-2">
+                   <h3 className="font-bold text-[#b78103] text-base leading-tight">
+                     {quotaErrorMessage.toLowerCase().includes('quota') || quotaErrorMessage.toLowerCase().includes('exhausted')
+                       ? "Firestore Database Read Quota Exceeded (Free Tier Spark Plan)"
+                       : "Koneksi Cloud Firestore Terganggu (Mode Terlokalisasi Cerdas Aktif)"}
+                   </h3>
+                   <p className="text-sm text-neutral-600 leading-relaxed font-semibold">
+                     {quotaErrorMessage.toLowerCase().includes('quota') || quotaErrorMessage.toLowerCase().includes('exhausted')
+                       ? "Aplikasi saat ini telah mendeteksi batas kuota baca harian Firebase Anda yang terlampaui. Google Firebase membatasi pembacaan harian untuk Spark Plan sebesar 50.000 dokumen."
+                       : "Aplikasi saat ini tidak memperoleh respon instan atau koneksi langsung dari Cloud Firestore (kemungkinan dibatasi kuota atau kendala status jaringan eksternal)."}
+                   </p>
+                   
+                   <div className="bg-white/60 rounded-xl p-4 border border-amber-200/50 space-y-1.5 text-xs text-neutral-600 font-semibold leading-relaxed">
+                     <p className="flex items-center gap-1">
+                       <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                       {quotaErrorMessage.toLowerCase().includes('quota') || quotaErrorMessage.toLowerCase().includes('exhausted')
+                         ? <>Kuota harian Anda akan kembali di-reset secara otomatis pada <strong className="text-neutral-800">hari esok</strong>.</>
+                         : <>Sistem melakukan deteksi otomatis dan mengaktifkan <strong className="text-neutral-800">pemulihan mandiri</strong>.</>}
+                     </p>
+                     <p className="flex items-center gap-1">
+                       <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                       Informasi penggunaan kuota selengkapnya dapat Anda saksikan di tabel <strong className="text-neutral-800">Spark Plan (Enterprise edition)</strong> di <a href="https://firebase.google.com/pricing#cloud-firestore" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Firebase Pricing <ExternalLink className="h-3 w-3" /></a>.
+                     </p>
+                     <p className="flex items-center gap-1">
+                       <span className="h-1.5 w-1.5 rounded-full bg-[#cbdc10]" />
+                       Untuk melanjutkan pengembangan atau pengujian tanpa batasan, silakan buka <a href="https://console.firebase.google.com/project/gen-lang-client-0485248882/firestore/databases/ai-studio-da1e2927-a704-46ab-9073-897d46ac2f0e/data?openUpgradeDialog=true" target="_blank" rel="noopener noreferrer" className="text-[#a47200] underline inline-flex items-center gap-0.5 hover:text-neutral-900 transition-colors">Upgrades Dashboard Project Anda <ExternalLink className="h-3 w-3" /></a>.
+                     </p>
+                   </div>
+                   
+                   <p className="text-xs text-neutral-500 font-medium italic">
+                     💡 <strong>Sistem Berhasil Me-rescue Sesi Anda:</strong> Vloxa secara cerdas mengalihkan penyimpanan data Anda ke <strong>Sesi Offline Terlokalisasi (Browser Local Cache)</strong> secara real-time. Anda masih sangat aman untuk melakukan eksplorasi portofolio, memodifikasi profil UMKM, dan memantau draf watchlist domain Anda saat ini!
+                   </p>
+                 </div>
+               </div>
             </div>
           </div>
         )}

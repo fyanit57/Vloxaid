@@ -69,10 +69,20 @@ export function setOnQuotaExceeded(callback: (errorMsg: string) => void) {
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errorMsg = error instanceof Error ? error.message : String(error);
+  const errorCode = (error && typeof error === 'object' && 'code' in error) ? String((error as any).code) : '';
+  
   const isQuota = 
     errorMsg.toLowerCase().includes('quota') || 
     errorMsg.includes('Quota exceeded') ||
-    (error && typeof error === 'object' && 'code' in error && (error as any).code === 'resource-exhausted');
+    errorCode === 'resource-exhausted';
+
+  const isUnavailableOrOffline =
+    errorMsg.toLowerCase().includes('unavailable') ||
+    errorMsg.toLowerCase().includes('could not reach') ||
+    errorMsg.toLowerCase().includes('failed to connect') ||
+    errorMsg.toLowerCase().includes('offline') ||
+    errorCode === 'unavailable' ||
+    errorCode === 'failed-precondition';
 
   const errInfo: FirestoreErrorInfo = {
     error: errorMsg,
@@ -91,8 +101,8 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path
   };
   
-  if (isQuota) {
-    console.warn('Firestore Quota Exceeded (falling back gracefully):', JSON.stringify(errInfo));
+  if (isQuota || isUnavailableOrOffline) {
+    console.warn(`Firestore issues detected (falling back gracefully to offline mode): ${isQuota ? 'Quota Exceeded' : 'Server Unreachable'}`, JSON.stringify(errInfo));
     if (onQuotaExceededCallback) {
       onQuotaExceededCallback(errorMsg);
     }
