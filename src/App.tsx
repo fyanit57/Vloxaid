@@ -23,7 +23,9 @@ import {
   ExternalLink,
   Info,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -102,6 +104,9 @@ export default function App() {
     featuredTemplateIds,
     updateFeaturedTemplates,
     isAdmin,
+    isRealAdmin,
+    isAdminPreviewActive,
+    setIsAdminPreviewActive,
     customTemplates,
     addCustomTemplate,
     updateCustomTemplate,
@@ -143,12 +148,6 @@ export default function App() {
     e.preventDefault();
     if (!domainInput.trim()) return;
 
-    if (!user) {
-      setAuthTab("login");
-      setIsAuthOpen(true);
-      return;
-    }
-
     try {
       let suffix = ".com";
       if (!domainInput.includes(".")) {
@@ -176,11 +175,6 @@ export default function App() {
 
   // Safe Interactive Choose template handler
   const handleChooseTemplate = (templateId: string) => {
-    if (!user) {
-      setAuthTab("register");
-      setIsAuthOpen(true);
-      return;
-    }
     // Toggle favorite or auto-assign to user's virtual workspace
     toggleFavorite(templateId);
     
@@ -247,6 +241,47 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-50/30 flex flex-col antialiased">
+      
+      {/* Admin Preview Control Panel Banner */}
+      {isRealAdmin && (
+        <div className={`w-full ${isAdminPreviewActive ? 'bg-amber-500 text-neutral-950' : 'bg-neutral-900 border-b border-neutral-800 text-white'} px-4 py-2 sm:py-2.5 text-xs transition-all duration-300 relative z-50 shadow-md`}>
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className={`flex h-2.5 w-2.5 rounded-full ${isAdminPreviewActive ? 'bg-neutral-950 animate-pulse' : 'bg-[#dbef1a] animate-pulse'}`} />
+              <p className="font-bold tracking-wide text-center sm:text-left">
+                {isAdminPreviewActive ? (
+                  <span>
+                    👑 <strong className="font-black">Mode Preview Aktif:</strong> Anda sedang melihat website ini sebagai <strong className="font-black text-neutral-900 underline decoration-neutral-900">Pengguna Biasa (Non-Admin)</strong>.
+                  </span>
+                ) : (
+                  <span>
+                    👑 <strong className="font-black">Mode Admin Aktif:</strong> Anda masuk sebagai <strong className="font-black text-[#dbef1a]">Admin Vloxa</strong> dan dapat mengelola seluruh template & domain.
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isAdminPreviewActive ? (
+                <button
+                  onClick={() => setIsAdminPreviewActive(false)}
+                  className="px-3 py-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 text-[#dbef1a]" />
+                  Aktifkan Mode Admin
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsAdminPreviewActive(true)}
+                  className="px-3 py-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider rounded-lg bg-[#dbef1a] text-neutral-950 hover:bg-[#cbdc10] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <EyeOff className="h-3.5 w-3.5 text-neutral-950 animate-pulse" />
+                  Simulasi Logout Admin (Preview User)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Top Banner Accent */}
       <div className="bg-neutral-950 py-2 px-4 overflow-hidden relative border-b border-neutral-800">
@@ -325,31 +360,17 @@ export default function App() {
 
           {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <a 
-                href="#vloxa-dashboard"
-                className="text-sm font-bold text-neutral-700 hover:text-neutral-950 transition-colors px-3 py-1.5"
-              >
-                Dashboard
-              </a>
-            ) : (
-              <button 
-                onClick={() => { setAuthTab("login"); setIsAuthOpen(true); }}
-                className="text-sm font-bold text-neutral-700 hover:text-neutral-950 transition-colors cursor-pointer px-3 py-1.5"
-              >
-                Login
-              </button>
-            )}
+            <a 
+              href="#vloxa-dashboard"
+              className="text-sm font-bold text-neutral-700 hover:text-neutral-950 transition-colors px-3 py-1.5"
+            >
+              Dashboard
+            </a>
 
             <button 
               onClick={() => { 
-                if (user) {
-                  const dash = document.getElementById("vloxa-dashboard");
-                  if (dash) dash.scrollIntoView({ behavior: "smooth" });
-                } else {
-                  setAuthTab("register"); 
-                  setIsAuthOpen(true); 
-                }
+                const dash = document.getElementById("vloxa-dashboard");
+                if (dash) dash.scrollIntoView({ behavior: "smooth" });
               }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#dbef1a] px-5 py-2.5 text-sm font-bold text-neutral-950 hover:bg-[#cbdc10] transition-colors shadow-2xs cursor-pointer"
             >
@@ -386,7 +407,6 @@ export default function App() {
                 <a href="#about-section" onClick={() => setMobileMenuOpen(false)} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">About</a>
                 <a href="#footer" onClick={() => { setMobileMenuOpen(false); setIsChatOpen(true); }} className="py-2 hover:bg-neutral-50 px-3 rounded-lg">Kontak</a>
                 <div className="border-t pt-4 flex gap-3">
-                  {user ? (
                     <a
                       href="#vloxa-dashboard"
                       onClick={() => setMobileMenuOpen(false)}
@@ -394,29 +414,16 @@ export default function App() {
                     >
                       Dashboard
                     </a>
-                  ) : (
                     <button
-                      onClick={() => { setMobileMenuOpen(false); setAuthTab("login"); setIsAuthOpen(true); }}
-                      className="flex-1 py-1 px-3 rounded-xl border border-neutral-200 font-bold text-neutral-700 text-xs cursor-pointer"
-                    >
-                      Login
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      if (user) {
+                      onClick={() => {
+                        setMobileMenuOpen(false);
                         const d = document.getElementById("vloxa-dashboard");
                         if (d) d.scrollIntoView({ behavior: "smooth" });
-                      } else {
-                        setAuthTab("register");
-                        setIsAuthOpen(true);
-                      }
-                    }}
-                    className="flex-1 py-2 rounded-xl bg-[#dbef1a] text-center font-bold text-neutral-900 text-xs cursor-pointer"
-                  >
-                    Get Started
-                  </button>
+                      }}
+                      className="flex-1 py-1 px-3 rounded-xl bg-[#dbef1a] text-center font-bold text-neutral-900 text-xs cursor-pointer"
+                    >
+                      Get Started
+                    </button>
                 </div>
               </div>
             </motion.div>
@@ -783,14 +790,12 @@ export default function App() {
           </div>
         </section>
 
-        {/* Authenticated Workspace Section */}
-        {user && (
-          <section className="bg-neutral-50/50 py-12 px-6 border-t border-b border-neutral-100">
-            <div className="max-w-7xl mx-auto">
-              <Dashboard />
-            </div>
-          </section>
-        )}
+        {/* Public Playable Workspace Section */}
+        <section id="vloxa-dashboard" className="bg-neutral-50/50 py-12 px-6 border-t border-b border-neutral-100">
+          <div className="max-w-7xl mx-auto">
+            <Dashboard />
+          </div>
+        </section>
 
         {/* Section 2: Fitur Template List aligned with image2.png */}
         <section id="templates-section" className="py-20 px-6 bg-white border-t border-neutral-100">

@@ -8,7 +8,6 @@ import {
   Heart, 
   Globe, 
   Trash2, 
-  LogOut, 
   Sparkles, 
   RefreshCw, 
   CheckCircle, 
@@ -28,6 +27,9 @@ export default function Dashboard() {
     isFirebaseActive,
     customTemplates,
     isAdmin,
+    isRealAdmin,
+    isAdminPreviewActive,
+    setIsAdminPreviewActive,
     activateAdminWithCode,
     deactivateAdmin
   } = useApp();
@@ -43,7 +45,7 @@ export default function Dashboard() {
   const [adminMessage, setAdminMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isActivating, setIsActivating] = useState(false);
 
-  if (!user) return null;
+  // Supported for full offline guest dashboard usage when logged out
 
   const handleActivateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,23 +109,15 @@ export default function Dashboard() {
             <h2 className="font-display text-2xl font-bold text-neutral-900">Dashboard Real-Time</h2>
           </div>
           <p className="text-sm text-neutral-500 mt-1">
-            Masuk sebagai <span className="font-semibold text-neutral-800">{user.displayName || user.email}</span> ({user.email})
+            Sesi aktif sebagai <span className="font-semibold text-neutral-800">{user?.displayName || "Tamu Vloxa"}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-[#dbef1a]/20 text-neutral-800 border border-[#dbef1a]/30">
-            {isFirebaseActive ? "Firestore Connected" : "Local Mock Storage"}
+          <span className="text-xs px-3 py-1.5 rounded-full font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Penyimpanan Lokal Aktif (Offline)
           </span>
-          <button
-            onClick={() => {
-              if (confirm("Apakah anda yakin ingin keluar?")) logoutUser();
-            }}
-            className="flex items-center gap-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 hover:text-red-600 transition-colors cursor-pointer"
-          >
-            <LogOut className="h-4 w-4" />
-            Keluar
-          </button>
         </div>
       </div>
 
@@ -192,6 +186,37 @@ export default function Dashboard() {
               {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </form>
+          
+          {/* Admin Preview Mode (Simulasi Logout Admin) */}
+          {isRealAdmin && (
+            <div className="mt-6 pt-6 border-t border-neutral-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+                <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Simulasi Mode UI</h4>
+              </div>
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-2.5">
+                <div className="text-xs text-amber-800">
+                  <p className="font-extrabold uppercase tracking-wide text-[10px]">Simulasi Tampilan Logout Admin</p>
+                  <p className="font-medium text-[11px] mt-0.5 leading-normal">
+                    {isAdminPreviewActive 
+                      ? "Anda saat ini menyamar sebagai pengguna biasa (Non-Admin). Tombol dan fitur admin disembunyikan agar Anda dapat melihat tampilan website apa adanya." 
+                      : "Gunakan fitur ini untuk menyamar sebagai pengguna biasa tanpa harus logout akun Google Anda."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAdminPreviewActive(!isAdminPreviewActive)}
+                  className={`w-full text-center py-2 px-3 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer shadow-3xs ${
+                    isAdminPreviewActive 
+                      ? "bg-amber-600 hover:bg-amber-700 text-white" 
+                      : "bg-white hover:bg-neutral-100 text-neutral-800 border border-neutral-200"
+                  }`}
+                >
+                  {isAdminPreviewActive ? "Matikan Preview (Kembali Jadi Admin)" : "Aktifkan Preview (Sembunyikan Akses Admin)"}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Admin Backdoor Code Section (Opsi 2) */}
           <div className="mt-6 pt-6 border-t border-neutral-200">

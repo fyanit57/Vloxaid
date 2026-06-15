@@ -80,6 +80,9 @@ interface AppContextType {
   featuredTemplateIds: string[];
   updateFeaturedTemplates: (ids: string[]) => Promise<void>;
   isAdmin: boolean;
+  isRealAdmin: boolean;
+  isAdminPreviewActive: boolean;
+  setIsAdminPreviewActive: (val: boolean) => void;
   customTemplates: Template[];
   addCustomTemplate: (template: Omit<Template, "id">) => Promise<void>;
   updateCustomTemplate: (id: string, template: Omit<Template, "id" | "createdAt">) => Promise<void>;
@@ -101,11 +104,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [featuredTemplateIds, setFeaturedTemplateIds] = useState<string[]>(["fb-2", "fs-1", "ev-1", "bs-1", "sh-1"]);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirebaseActive, setIsFirebaseActive] = useState(!isPlaceholderConfig && !!auth);
+  const [isFirebaseActive, setIsFirebaseActive] = useState(false);
   const [quotaExceeded, setQuotaExceeded] = useState(false);
   const [quotaErrorMessage, setQuotaErrorMessage] = useState("");
 
-  const isAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
+  const [isAdminPreviewActive, setIsAdminPreviewActiveState] = useState<boolean>(() => {
+    return localStorage.getItem("vloxa_admin_preview_active") === "true";
+  });
+
+  const setIsAdminPreviewActive = (val: boolean) => {
+    setIsAdminPreviewActiveState(val);
+    localStorage.setItem("vloxa_admin_preview_active", val ? "true" : "false");
+  };
+
+  const isRealAdmin = user ? (user.email === "fyanit57@gmail.com" || userProfile?.role === "admin") : false;
+  const isAdmin = isRealAdmin && !isAdminPreviewActive;
 
   // Fallback storage functions for Placeholder/Offline mode
   const getLocalData = <T,>(key: string, defaultValue: T): T => {
@@ -137,39 +150,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Synchronize authentication state
   useEffect(() => {
+    // Clear the active session flags on initialization as requested by "keluarkan saya dari sesi login"
+    localStorage.setItem("vloxa_session_active", "false");
+    localStorage.removeItem("vloxa_fallback_uid");
+    localStorage.removeItem("vloxa_fallback_name");
+    localStorage.removeItem("vloxa_fallback_email");
+
     if (!isFirebaseActive || !auth || !db) {
       // Offline fallback mode initialization
-      const cachedUid = user?.uid || localStorage.getItem("vloxa_fallback_uid") || "guest_vloxa";
+      const sessionActive = localStorage.getItem("vloxa_session_active") === "true";
       
-      // Keep state session intact or set dummy session
-      if (user) {
-        localStorage.setItem("vloxa_fallback_uid", user.uid);
-        localStorage.setItem("vloxa_fallback_name", user.displayName || "Pengusaha UMKM");
-        localStorage.setItem("vloxa_fallback_email", user.email || "");
+      if (sessionActive) {
+        const cachedUid = user?.uid || localStorage.getItem("vloxa_fallback_uid") || "guest_vloxa";
+        
+        // Keep state session intact or set dummy session
+        if (user) {
+          localStorage.setItem("vloxa_fallback_uid", user.uid);
+          localStorage.setItem("vloxa_fallback_name", user.displayName || "Pengusaha UMKM");
+          localStorage.setItem("vloxa_fallback_email", user.email || "");
+        } else {
+          const dummyUser = {
+            uid: cachedUid,
+            displayName: localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
+            email: localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
+            emailVerified: true,
+          } as unknown as User;
+          setUser(dummyUser);
+        }
+        
+        // Load offline data from localStorage cache
+        setUserProfile(getLocalData<UserProfile>(`vloxa_profile_${cachedUid}`, {
+          userId: cachedUid,
+          name: user?.displayName || localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
+          email: user?.email || localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
+          bizType: "UMKM",
+          websiteTitle: "Toko Online Saya",
+          themeColor: "#dbef1a",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          role: "member"
+        }));
+        setFavorites(getLocalData<UserFavorite[]>(`vloxa_favorites_${cachedUid}`, []));
+        setDomainRequests(getLocalData<DomainRequest[]>(`vloxa_domains_${cachedUid}`, []));
       } else {
-        const dummyUser = {
-          uid: cachedUid,
-          displayName: localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
-          email: localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
-          emailVerified: true,
-        } as unknown as User;
-        setUser(dummyUser);
+        // Enforce clean logged out visitor state (no active session)
+        setUser(null);
+        setUserProfile(null);
+        setFavorites([]);
+        setDomainRequests([]);
       }
-      
-      // Load offline data from localStorage cache
-      setUserProfile(getLocalData<UserProfile>(`vloxa_profile_${cachedUid}`, {
-        userId: cachedUid,
-        name: user?.displayName || localStorage.getItem("vloxa_fallback_name") || "Tamu Vloxa",
-        email: user?.email || localStorage.getItem("vloxa_fallback_email") || "guest@vloxa.com",
-        bizType: "UMKM",
-        websiteTitle: "Toko Online Saya",
-        themeColor: "#dbef1a",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        role: "member"
-      }));
-      setFavorites(getLocalData<UserFavorite[]>(`vloxa_favorites_${cachedUid}`, []));
-      setDomainRequests(getLocalData<DomainRequest[]>(`vloxa_domains_${cachedUid}`, []));
       setIsLoading(false);
       return;
     }
@@ -282,113 +311,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [isFirebaseActive]);
 
-  // Google Login implementation
+  // Google Login implementation - Fully Disabled as requested
   const loginWithGoogle = async () => {
-    if (!isFirebaseActive || !auth) {
-      // Simulate Google login offline
-      const mockUid = "gg-" + Math.random().toString(36).substring(2, 11);
-      localStorage.setItem("vloxa_fallback_uid", mockUid);
-      localStorage.setItem("vloxa_fallback_name", "Google User");
-      localStorage.setItem("vloxa_fallback_email", "google.user@gmail.com");
-      
-      const simulatedUser = {
-        uid: mockUid,
-        displayName: "Google User",
-        email: "google.user@gmail.com",
-        emailVerified: true,
-      } as unknown as User;
-      
-      setUser(simulatedUser);
-      setIsFirebaseActive(false);
-      return;
-    }
-
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      console.error("Firebase Login Gagal:", err);
-      throw err;
-    }
+    console.log("Login dengan Google dinonaktifkan.");
   };
 
-  // Email and Password Login
+  // Email and Password Login - Fully Disabled as requested
   const loginWithEmail = async (email: string, pass: string) => {
-    if (!isFirebaseActive || !auth) {
-      // Offline fallback login success simulator
-      const mockUid = "em-" + btoa(email).substring(0, 10);
-      localStorage.setItem("vloxa_fallback_uid", mockUid);
-      localStorage.setItem("vloxa_fallback_name", email.split("@")[0]);
-      localStorage.setItem("vloxa_fallback_email", email);
-      
-      const simulatedUser = {
-        uid: mockUid,
-        displayName: email.split("@")[0],
-        email: email,
-        emailVerified: true,
-      } as unknown as User;
-      
-      setUser(simulatedUser);
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (err) {
-      console.error("Login email gagal:", err);
-      throw err;
-    }
+    console.log("Login email dinonaktifkan.");
   };
 
-  // Register user manual
+  // Register user manual - Fully Disabled as requested
   const registerWithEmail = async (name: string, email: string, pass: string) => {
-    if (!isFirebaseActive || !auth) {
-      const mockUid = "em-" + btoa(email).substring(0, 10);
-      localStorage.setItem("vloxa_fallback_uid", mockUid);
-      localStorage.setItem("vloxa_fallback_name", name);
-      localStorage.setItem("vloxa_fallback_email", email);
-      
-      const simulatedUser = {
-        uid: mockUid,
-        displayName: name,
-        email: email,
-        emailVerified: true,
-      } as unknown as User;
-      
-      setUser(simulatedUser);
-      return;
-    }
-
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-      if (userCred.user) {
-        await updateProfile(userCred.user, { displayName: name });
-      }
-    } catch (err) {
-      console.error("Registrasi gagal:", err);
-      throw err;
-    }
+    console.log("Registrasi baru dinonaktifkan.");
   };
 
-  // Logout function
+  // Logout function - Fully Disabled as requested
   const logoutUser = async () => {
-    localStorage.removeItem("vloxa_fallback_uid");
-    localStorage.removeItem("vloxa_fallback_name");
-    localStorage.removeItem("vloxa_fallback_email");
-    setUser(null);
-    setUserProfile(null);
-    setFavorites([]);
-    setDomainRequests([]);
-
-    if (!isFirebaseActive || !auth) {
-      return;
-    }
-
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error("Signout error:", err);
-    }
+    console.log("Fungsi keluar dinonaktifkan.");
   };
 
   // Update profile
@@ -822,6 +762,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       featuredTemplateIds,
       updateFeaturedTemplates,
       isAdmin,
+      isRealAdmin,
+      isAdminPreviewActive,
+      setIsAdminPreviewActive,
       customTemplates,
       addCustomTemplate,
       updateCustomTemplate,
