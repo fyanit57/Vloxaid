@@ -708,13 +708,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const path = `custom_templates/${id}`;
     try {
-      await updateDoc(doc(db, "custom_templates", id), {
+      await setDoc(doc(db, "custom_templates", id), {
         title: templateData.title,
         category: templateData.category,
         categoryLabel: templateData.categoryLabel,
         image: templateData.image,
         demoUrl: templateData.demoUrl
-      });
+      }, { merge: true });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, path);
     }
